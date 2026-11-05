@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Discord Intel v2</title>
+<style>
+  :root{
+    --bg:#08090d; --card:rgba(255,255,255,.045); --stroke:rgba(255,255,255,.09);
+    --txt:#e9ecf5; --dim:#8b93a7; --acc:#7c5cff; --acc2:#22d3ee;
+    --ok:#3ddc97; --warn:#ffb020; --bad:#ff5f6d;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;color:var(--txt);min-height:100vh;
+    background:radial-gradient(1200px 600px at 8% -12%,#1b1440 0,transparent 60%),
+               radial-gradient(900px 500px at 96% -4%,#0b3b45 0,transparent 55%),var(--bg);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:26px 16px 90px}
+  header{display:flex;gap:14px;align-items:center;margin-bottom:22px;flex-wrap:wrap}
+  .logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:800;
+    color:#0a0b10;background:linear-gradient(135deg,var(--acc),var(--acc2));
+    box-shadow:0 8px 26px rgba(124,92,255,.42)}
+  h1{font-size:19px;margin:0;letter-spacing:-.4px}
+  header p{margin:2px 0 0;font-size:12.5px;color:var(--dim)}
+  .pill{margin-left:auto;font-size:11.5px;color:var(--dim);border:1px solid var(--stroke);
+    padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.03)}
+  .card{background:var(--card);border:1px solid var(--stroke);border-radius:20px;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 18px 50px rgba(0,0,0,.42)}
+  .panel{padding:20px}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+  label{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--dim);margin-bottom:7px;font-weight:600}
+  input{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--stroke);
+    background:rgba(0,0,0,.34);color:var(--txt);font:14px var(--mono);outline:none;transition:.18s}
+  input:focus{border-color:rgba(124,92,255,.75);box-shadow:0 0 0 3px rgba(124,92,255,.16)}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:16px}
+  button{border:0;border-radius:12px;padding:12px 20px;font:700 14px system-ui,sans-serif;cursor:pointer;
+    color:#fff;background:linear-gradient(135deg,var(--acc),#5b8cff);transition:.18s;
+    box-shadow:0 10px 26px rgba(124,92,255,.32)}
+  button:hover{transform:translateY(-1px);filter:brightness(1.07)}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  button.ghost{background:rgba(255,255,255,.06);border:1px solid var(--stroke);box-shadow:none;color:var(--txt)}
+  button.sm{padding:7px 12px;font-size:12px;border-radius:10px}
+  .check{display:flex;gap:8px;align-items:center;font:12.5px var(--mono);color:var(--dim)}
+  .check input{width:15px;height:15px;accent-color:var(--acc)}
+  #status{font:12.5px var(--mono);color:var(--dim)}
+  #status.err{color:var(--bad)}
+  .stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin-top:18px}
+  .stat{padding:14px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid var(--stroke)}
+  .stat b{display:block;font-size:23px;letter-spacing:-.6px}
+  .stat span{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .profile{display:flex;gap:18px;padding:22px;align-items:center;margin-top:22px;position:relative;overflow:hidden}
+  .profile .banner{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.26;filter:blur(2px)}
+  .profile .inner{position:relative;display:flex;gap:18px;align-items:center;flex-wrap:wrap;width:100%}
+  .avatar{width:86px;height:86px;border-radius:50%;border:2px solid rgba(255,255,255,.16);
+    object-fit:cover;background:#15171f}
+  .profile h2{margin:0;font-size:20px;letter-spacing:-.4px}
+  .tag{font:12.5px var(--mono);color:var(--dim)}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .badge{font-size:10.5px;font-weight:600;padding:4px 9px;border-radius:999px;
+    background:rgba(124,92,255,.16);border:1px solid rgba(124,92,255,.4);color:#c9bcff}
+  .badge.b{background:rgba(34,211,238,.13);border-color:rgba(34,211,238,.38);color:#a9f0fb}
+  .tabs{display:flex;gap:8px;margin:22px 0 16px;overflow-x:auto;padding-bottom:4px}
+  .tab{white-space:nowrap;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;
+    color:var(--dim);border:1px solid var(--stroke);background:rgba(255,255,255,.03);cursor:pointer}
+  .tab.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,rgba(124,92,255,.95),rgba(91,140,255,.95))}
+  .pane{display:grid;gap:16px}
+  section.card h3{margin:0;padding:15px 20px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--dim);border-bottom:1px solid var(--stroke);display:flex;gap:10px;align-items:center}
+  section.card h3 em{font-style:normal;color:var(--txt);background:rgba(255,255,255,.07);
+    padding:2px 8px;border-radius:999px;font-size:11px;letter-spacing:0}
+  .list{max-height:520px;overflow:auto;padding:8px}
+  .item{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;transition:.15s}
+  .item:hover{background:rgba(255,255,255,.05)}
+  .item img{width:38px;height:38px;border-radius:50%;flex:0 0 auto;background:#15171f;object-fit:cover}
+  .meta{min-width:0}
+  .meta b{display:block;font-size:13.5px;font-weight:600}
+  .meta small{display:block;font:11px var(--mono);color:var(--dim);margin-top:2px}
+  .right{margin-left:auto;text-align:right;font:11px var(--mono);color:var(--dim);flex:0 0 auto}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+  .hit{border:1px solid rgba(61,220,151,.45);background:rgba(61,220,151,.08)}
+  .empty{padding:22px;text-align:center;color:var(--dim);font-size:13px}
+  .filters{display:flex;gap:8px;padding:10px 12px 0;flex-wrap:wrap}
+  .fchip{padding:7px 13px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
+    color:var(--dim);border:1px solid var(--stroke);background:rgba(255,255,255,.03)}
+  .fchip.on{color:#fff;background:rgba(124,92,255,.55);border-color:transparent}
+  .guild{overflow:hidden}
+  .ghead{display:flex;gap:12px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--stroke)}
+  .ghead img{width:34px;height:34px;border-radius:11px;object-fit:cover;background:#15171f}
+  .gname{min-width:0;font-size:13.5px;font-weight:700}
+  .gname small{display:block;font:11px var(--mono);color:var(--dim);font-weight:400}
+  .gstat{margin-left:auto;font:11.5px var(--mono);color:var(--dim)}
+  .msg{padding:11px 12px;border-radius:14px}
+  .msg:hover{background:rgba(255,255,255,.05)}
+  .mhead{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:12.5px}
+  .mhead b{font-weight:700}
+  .mhead span{font:11px var(--mono);color:var(--dim)}
+  .mbody{margin:5px 0 0;font-size:13px;line-height:1.5;color:#d6dbe8;word-wrap:break-word}
+  .mbody a{color:var(--acc2)}
+  details.card{margin-top:18px;padding:0}
+  details.card summary{padding:15px 20px;cursor:pointer;font:600 12px system-ui;color:var(--dim);
+    letter-spacing:.09em;text-transform:uppercase}
+  pre{overflow:auto;margin:0;padding:0 20px 20px;font:12px/1.55 var(--mono);color:#b9c2d8;white-space:pre}
+  .note{font-size:11.5px;color:var(--dim);line-height:1.6;margin:10px 0 0}
+  .list::-webkit-scrollbar{width:8px}
+  .list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:9px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">D</div>
+    <div><h1>Discord Intel v2</h1><p>Perfil · Amigos · Calls · Mensagens em servidores</p></div>
+    <div class="pill">paginado · exportável</div>
+  </header>
+
+  <div class="card panel">
+    <div class="grid">
+      <div><label for="target">ID do usuário alvo</label>
+        <input id="target" inputmode="numeric" placeholder="ex.: 80351110224678912" autocomplete="off"></div>
+      <div><label for="token">Token da conta consultora</label>
+        <input id="token" type="password" placeholder="Authorization (sem 'Bot ')" autocomplete="off"></div>
+      <div><label for="base">Endpoint / proxy</label>
+        <input id="base" value="https://discord.com/api/v9"></div>
+      <div><label for="maxdm">Máx. DMs a varrer</label>
+        <input id="maxdm" value="40" inputmode="numeric"></div>
+      <div><label for="maxguild">Máx. servidores</label>
+        <input id="maxguild" value="12" inputmode="numeric"></div>
+    </div>
+
+    <div class="row">
+      <button id="go">Investigar</button>
+      <button id="export" class="ghost" disabled>Exportar JSON</button>
+      <label class="check"><input id="onlyTarget" type="checkbox" checked> só calls com o alvo</label>
+      <label class="check"><input id="remember" type="checkbox" checked> lembrar token</label>
+      <span id="status">aguardando…</span>
+    </div>
+
+    <div class="stats" id="stats" style="display:none">
+      <div class="stat"><b id="sFriends">0</b><span>amigos</span></div>
+      <div class="stat"><b id="sMutual">0</b><span>em comum</span></div>
+      <div class="stat"><b id="sDms">0</b><span>DMs/grupos</span></div>
+      <div class="stat"><b id="sCalls">0</b><span>calls</span></div>
+      <div class="stat"><b id="sGuilds">0</b><span>servidores</span></div>
+      <div class="stat"><b id="sMsgs">0</b><span>mensagens</span></div>
+    </div>
+
+    <p class="note">Amigos, calls e mensagens saem do <b>token da consultora</b>.
+      O ID alvo alimenta o perfil, os amigos em comum, os servidores compartilhados e o filtro
+      <code>author_id</code> da busca.</p>
+  </div>
+
+  <div id="profileSlot"></div>
+  <div class="tabs" id="tabs" style="display:none">
+    <div class="tab on" data-tab="friends">Amigos</div>
+    <div class="tab" data-tab="calls">Calls</div>
+    <div class="tab" data-tab="messages">Mensagens</div>
+  </div>
+  <div class="pane" id="pane"></div>
+
+  <details class="card">
+    <summary>proxy local opcional (CORS/403) — Python no Termux</summary>
+    <pre id="proxyCode"></pre>
+  </details>
+</div>
+
+<script id="proxy-src" type="text/plain">
+#!/usr/bin/env python3
+# salve como proxy.py e rode: python proxy.py
+import urllib.request, urllib.error
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+UPSTREAM = "https://discord.com/api/v9"
+PORT = 8899
+FWD = ("Authorization", "Content-Type", "User-Agent", "X-Discord-Locale")
+
+class H(BaseHTTPRequestHandler):
+    def _cors(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Headers", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
+
+    def do_OPTIONS(self):
+        self.send_response(204); self._cors(); self.end_headers()
+
+    def _proxy(self, method):
+        n = int(self.headers.get("Content-Length") or 0)
+        body = self.rfile.read(n) if n else None
+        req = urllib.request.Request(UPSTREAM + self.path, data=body, method=method)
+        for h in FWD:
+            if self.headers.get(h):
+                req.add_header(h, self.headers[h])
+        if not self.headers.get("User-Agent"):
+            req.add_header("User-Agent", "Mozilla/5.0")
+        try:
+            with urllib.request.urlopen(req) as r:
+                data, code = r.read(), r.status
+        except urllib.error.HTTPError as e:
+            data, code = e.read(), e.code
+        self.send_response(code); self._cors()
+        self.send_header("Content-Type", "application/json")
+        self.end_headers(); self.wfile.write(data)
+
+    def do_GET(self):  self._proxy("GET")
+    def do_POST(self): self._proxy("POST")
+    def log_message(self, *a): pass
+
+print("proxy em http://127.0.0.1:%d" % PORT)
+ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()
+</script>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const S = { base:"https://discord.com/api/v9", token:"", target:"", tab:"friends",
+              filter:"all", data:null };
+
+  $("proxyCode").textContent = $("proxy-src").textContent.trim();
+
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+  function snowflakeDate(id){ try{ return new Date(Number((BigInt(id)>>22n)+1420070400000n)); }catch{ return null; } }
+  function avatarUrl(u){
+    if(!u) return "https://cdn.discordapp.com/embed/avatars/0.png";
+    if(u.avatar){
+      const ext = u.avatar.startsWith("a_") ? "gif" : "png";
+      return `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${ext}?size=128`;
+    }
+    let i = 0; try{ i = Number((BigInt(u.id)>>22n) % 6n); }catch{}
+    return `https://cdn.discordapp.com/embed/avatars/${i}.png`;
+  }
+  const guildIcon = (g) => g.icon
+    ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=64`
+    : "https://cdn.discordapp.com/embed/avatars/3.png";
+  const relLabel = { 1:"amigo", 2:"bloqueado", 3:"pedido recebido", 4:"pedido enviado" };
+  const FLAGS = [[1<<0,"STAFF"],[1<<1,"PARTNER"],[1<<2,"HYPESQUAD"],[1<<3,"BUG HUNTER 1"],
+    [1<<6,"BRAVERY"],[1<<7,"BRILLIANCE"],[1<<8,"BALANCE"],[1<<9,"EARLY SUPPORTER"],
+    [1<<14,"BUG HUNTER 2"],[1<<17,"BOT DEV"],[1<<18,"MODERATOR"],[1<<22,"ACTIVE DEV"]];
+
+  const setStatus = (m, err=false) => { const e=$("status"); e.textContent=m; e.className = err?"err":""; };
+  const fmtDate = (iso) => { try{ return new Date(iso).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"}); }catch{ return iso; } };
+  const fmtDur = (s) => s==null ? "sem registro" : s<60 ? s+"s" : s<3600 ? Math.floor(s/60)+"m "+(s%60)+"s" : Math.floor(s/3600)+"h "+Math.floor(s%3600/60)+"m";
+
+  async function api(path, { token = S.token, method="GET", body=null, retries=4 } = {}) {
+    const url = S.base.replace(/\/+$/,"") + path;
+    for(let i=0;i<=retries;i++){
+      const headers = { Accept:"application/json" };
+      if(token) headers.Authorization = token;
+      if(body) headers["Content-Type"] = "application/json";
+      const res = await fetch(url,{ method, headers,
+        body: body ? JSON.stringify(body) : undefined, cache:"no-store" });
+      if(res.status === 429){
+        const j = await res.json().catch(()=>({retry_after:1}));
+        await sleep(Math.ceil((j.retry_after||1)*1000)+300);
+        continue;
+      }
+      if(res.status === 202) return { __indexing:true };
+      if(!res.ok){
+        const t = await res.text().catch(()=> "");
+        const e = new Error("HTTP "+res.status+" "+t.slice(0,140)); e.status = res.status; throw e;
+      }
+      return res.status === 204 ? null : res.json();
+    }
+    throw new Error("429 persistente — diminua 'máx. servidores'.");
+  }
+
+  /* ---------- coleta ---------- */
+  async function scanCalls(channels, targetId, onlyTarget, maxCh){
+    const dms = channels.filter(c => c.type===1 || c.type===3).slice(0, maxCh);
+    const calls = []; const seen = new Set(); const skipped = [];
+    for(let i=0;i<dms.length;i++){
+      const ch = dms[i];
+      const title = ch.type===1 ? (ch.recipients?.[0]?.username || "DM") : (ch.name || "grupo");
+      setStatus(`calls · ${i+1}/${dms.length} · ${title}`);
+      try{
+        const msgs = await api(`/channels/${ch.id}/messages?limit=100`);
+        for(const m of msgs){
+          if(m.type !== 3 || seen.has(m.id)) continue;
+          const involved = [...new Set((ch.recipients||[]).map(r=>r.id).concat(m.author?.id||[]))];
+          if(onlyTarget && targetId && !involved.includes(targetId)) continue;
+          seen.add(m.id);
+          const start = new Date(m.timestamp).getTime();
+          const end = m.call?.ended_timestamp ? new Date(m.call.ended_timestamp).getTime() : null;
+          calls.push({
+            id:m.id, channelId:ch.id, channelType:ch.type, channelName:title,
+            recipients:(ch.recipients||[]).map(r=>({id:r.id,username:r.username,avatar:r.avatar})),
+            author: m.author ? {id:m.author.id,username:m.author.username,avatar:m.author.avatar} : null,
+            participants: m.call?.participants || involved,
+            timestamp:m.timestamp, ended:m.call?.ended_timestamp||null,
+            durationSec: end ? Math.max(0, Math.round((end-start)/1000)) : null,
+            missed: !m.call?.ended_timestamp,
+            withTarget: targetId ? involved.includes(targetId) : false,
+          });
+        }
+      }catch(e){ skipped.push({ channelId:ch.id, error:e.message }); }
+      await sleep(120);
+    }
+    calls.sort((a,b)=> new Date(b.timestamp)-new Date(a.timestamp));
+    return { calls, skipped };
+  }
+
+  async function sharedGuilds(targetId){
+    // 1) mutual_guilds do perfil
+    try{
+      const p = await api(`/users/${targetId}/profile?with_mutual_guilds=true&with_mutual_friends=true`);
+      if(p && p.mutual_guilds && p.mutual_guilds.length){
+        return p.mutual_guilds.map(g => ({ id:g.id, name:g.nick || g.id, icon:null }));
+      }
+    }catch{}
+    // 2) fallback: meus servidores (a busca dirá quais são válidos)
+    const mine = await api("/users/@me/guilds");
+    return (mine||[]).map(g => ({ id:g.id, name:g.name, icon:g.icon }));
+  }
+
+  async function loadGuildInfo(g){
+    if(g.channelsMap) return;
+    g.channelsMap = {};
+    try{
+      const chs = await api(`/guilds/${g.id}/channels`);
+      for(const c of chs) g.channelsMap[c.id] = c.name;
+    }catch{}
+    try{
+      const gi = await api(`/guilds/${g.id}?with_counts=false`);
+      if(gi && gi.name) g.name = gi.name;
+      if(gi && gi.icon) g.icon = gi.icon;
+    }catch{}
+  }
+
+  async function fetchPage(g, offset){
+    const q = new URLSearchParams({
+      author_id: S.target, offset: String(offset),
+      sort_by: "timestamp", sort_order: "desc", include_nsfw: "true",
+    });
+    const res = await api(`/guilds/${g.id}/messages/search?${q.toString()}`);
+    if(res && res.__indexing){ g.indexing = true; return []; }
+    g.indexing = false;
+    g.total = res.total_results || 0;
+    const hits = (res.messages || []).map(h => Array.isArray(h) ? h[0] : h).filter(Boolean);
+    return hits.map(m => ({
+      id:m.id, channel_id:m.channel_id,
+      channelName: g.channelsMap?.[m.channel_id] || m.channel_id,
+      content: m.content || "",
+      timestamp: m.timestamp,
+      author: { id:m.author?.id, username:m.author?.username, global_name:m.author?.global_name, avatar:m.author?.avatar },
+      attachments: (m.attachments||[]).length,
+      embeds: (m.embeds||[]).length,
+      link: `https://discord.com/channels/${g.id}/${m.channel_id}/${m.id}`,
+    }));
+  }
+
+  async function loadGuildMessages(g, pages=1){
+    if(g.busy) return;
+    g.busy = true; g.error = null; renderPane();
+    try{
+      await loadGuildInfo(g);
+      for(let p=0; p<pages; p++){
+        const hits = await fetchPage(g, g.messages.length);
+        if(!hits.length) break;
+        const ids = new Set(g.messages.map(m=>m.id));
+        for(const h of hits) if(!ids.has(h.id)) g.messages.push(h);
+        if(g.messages.length >= g.total) break;
+        await sleep(450);   // busca do Discord é rate-limitada
+      }
+    }catch(e){
+      g.error = e.message;
+    }finally{
+      g.busy = false;
+      renderPane(); updateStats();
+    }
+  }
+
+  /* ---------- render ---------- */
+  function profileHtml(){
+    const d = S.data; if(!d || !d.user) return "";
+    const u = d.user;
+    const badges = FLAGS.filter(([bit]) => (u.public_flags||0) & bit).map(([,n]) => n);
+    if(u.bot) badges.unshift("BOT");
+    if(d.profile?.premium_type) badges.push("NITRO");
+    const created = snowflakeDate(u.id);
+    const banner = u.banner ? `https://cdn.discordapp.com/banners/${u.id}/${u.banner}.png?size=600` : "";
+    return `
+      <div class="card profile">
+        ${banner ? `<div class="banner" style="background-image:url('${esc(banner)}')"></div>`:""}
+        <div class="inner">
+          <img class="avatar" src="${esc(avatarUrl(u))}" alt="">
+          <div style="min-width:0">
+            <h2>${esc(u.global_name || u.username)}</h2>
+            <div class="tag">@${esc(u.username)} · ${esc(u.id)}</div>
+            ${created ? `<div class="tag">conta criada em ${created.toLocaleDateString("pt-BR")}</div>` : ""}
+            <div class="badges">
+              ${badges.map(b=>`<span class="badge b">${esc(b)}</span>`).join("")}
+              ${d.mutual ? `<span class="badge">${d.mutual.length} amigos em comum</span>` : ""}
+              ${d.guildsCount != null ? `<span class="badge">${d.guildsCount} servidores</span>` : ""}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function friendsHtml(){
+    const all = S.data?.friends || [];
+    const list = all.filter(r => S.filter === "all" || r.type === Number(S.filter));
+    const body = list.length ? list.map(r => {
+      const u = r.user || {};
+      const hit = u.id === S.target;
+      const color = r.type===1?"var(--ok)":r.type===2?"var(--bad)":r.type===3?"var(--warn)":"var(--acc2)";
+      return `<div class="item ${hit?"hit":""}">
+        <img src="${esc(avatarUrl(u))}" alt="">
+        <div class="meta"><b>${esc(u.global_name||u.username||"?")}</b>
+          <small>@${esc(u.username||"?")} · ${esc(u.id||"?")}</small></div>
+        <div class="right"><span class="dot" style="background:${color}"></span>${esc(relLabel[r.type]||r.type)}</div>
+      </div>`;
+    }).join("") : `<div class="empty">nenhum registro nesse filtro</div>`;
+
+    return `<section class="card">
+      <h3>Amigos / relações <em>${all.length}</em></h3>
+      <div class="filters">
+        ${[["all","todos"],["1","amigos"],["3","recebidos"],["4","enviados"],["2","bloqueados"]]
+          .map(([v,l])=>`<div class="fchip ${S.filter===v?"on":""}" data-filter="${v}">${l}</div>`).join("")}
+      </div>
+      <div class="list">${body}</div>
+    </section>`;
+  }
+
+  function callsHtml(){
+    const calls = S.data?.calls || [];
+    const body = calls.length ? calls.slice(0,300).map(c => {
+      const other = c.recipients.find(r => r.id !== c.author?.id) || c.recipients[0];
+      const label = c.channelType===3 ? c.channelName : (other?.username || "DM");
+      const who = c.involved.filter(id => id !== c.author?.id);
+      return `<div class="item ${c.withTarget?"hit":""}">
+        <img src="${esc(avatarUrl(other||c.author))}" alt="">
+        <div class="meta"><b>${esc(label)} ${c.channelType===3?"(grupo)":""}</b>
+          <small>${esc(fmtDate(c.timestamp))} · dur. ${esc(fmtDur(c.durationSec))} ${c.missed?"· não atendida":""}</small>
+          <small>participantes: ${esc(who.join(", "))}</small></div>
+        <div class="right">${c.withTarget?"alvo ✓":esc(c.channelId)}</div>
+      </div>`;
+    }).join("") : `<div class="empty">nenhuma call encontrada</div>`;
+    return `<section class="card"><h3>Histórico de calls <em>${calls.length}</em></h3>
+      <div class="list">${body}</div></section>`;
+  }
+
+  function msgRow(m){
+    const txt = m.content ? esc(m.content.length>700 ? m.content.slice(0,700)+"…" : m.content) : "<i style='color:#6f7a91'>[sem texto]</i>";
+    const extras = [m.attachments ? m.attachments+" anexo(s)" : "", m.embeds ? m.embeds+" embed(s)" : ""]
+      .filter(Boolean).join(" · ");
+    return `<div class="msg">
+      <div class="mhead"><b>${esc(m.author?.global_name || m.author?.username || "?")}</b>
+        <span>#${esc(m.channelName)}</span><span>${esc(fmtDate(m.timestamp))}</span>
+        ${extras?`<span>${esc(extras)}</span>`:""}
+        <span><a href="${esc(m.link)}" target="_blank" rel="noopener" style="color:#22d3ee">abrir</a></span></div>
+      <p class="mbody">${txt}</p>
+    </div>`;
+  }
+
+  function messagesHtml(){
+    const gs = S.data?.guilds || [];
+    if(!gs.length) return `<section class="card"><div class="empty">sem servidores para varrer</div></section>`;
+    return gs.map(g => `
+      <section class="card guild">
+        <div class="ghead">
+          <img src="${esc(guildIcon(g))}" alt="">
+          <div class="gname">${esc(g.name)}<small>${esc(g.id)}</small></div>
+          <div class="gstat">${g.messages.length}/${g.total ?? "?"}</div>
+          <button class="ghost sm" data-more="${esc(g.id)}" ${g.busy || (g.total && g.messages.length>=g.total) ? "disabled":""}>
+            ${g.busy ? "…" : "+25"}</button>
+        </div>
+        ${g.indexing ? `<div class="empty">Discord está indexando o histórico — tente de novo em instantes</div>`:""}
+        ${g.error ? `<div class="empty">${esc(g.error)}</div>`:""}
+        <div class="list">${g.messages.length ? g.messages.map(msgRow).join("") : `<div class="empty">nenhuma mensagem carregada</div>`}</div>
+      </section>`).join("");
+  }
+
+  function renderPane(){
+    const pane = $("pane");
+    pane.innerHTML = S.tab === "friends" ? friendsHtml()
+                   : S.tab === "calls"   ? callsHtml()
+                   :                       messagesHtml();
+    pane.querySelectorAll("[data-filter]").forEach(el => el.onclick = () => {
+      S.filter = el.dataset.filter; renderPane();
+    });
+    pane.querySelectorAll("[data-more]").forEach(btn => btn.onclick = () => {
+      const g = S.data.guilds.find(x => x.id === btn.dataset.more);
+      if(g) loadGuildMessages(g, 1);
+    });
+  }
+
+  function updateStats(){
+    const d = S.data; if(!d) return;
+    const count = (arr,f) => (arr||[]).filter(f).length;
+    $("stats").style.display = "grid";
+    $("sFriends").textContent = count(d.friends, r => r.type===1);
+    $("sMutual").textContent  = d.mutual ? d.mutual.length : 0;
+    $("sDms").textContent     = count(d.channels, c => c.type===1 || c.type===3);
+    $("sCalls").textContent   = d.calls.length;
+    $("sGuilds").textContent  = d.guilds.length;
+    $("sMsgs").textContent    = d.guilds.reduce((a,g)=>a+g.messages.length,0);
+  }
+
+  /* ---------- fluxo ---------- */
+  async function investigate(){
+    const id = $("target").value.trim();
+    S.token  = $("token").value.trim();
+    S.base   = $("base").value.trim() || "https://discord.com/api/v9";
+    const maxDm    = Math.max(1, Math.min(200, parseInt($("maxdm").value,10) || 40));
+    const maxGuild = Math.max(1, Math.min(50,  parseInt($("maxguild").value,10) || 12));
+    const onlyTarget = $("onlyTarget").checked;
+
+    if(!/^\d{15,21}$/.test(id)){ setStatus("ID inválido — informe o snowflake numérico", true); return; }
+    if(!S.token){ setStatus("informe o token da conta consultora", true); return; }
+
+    if($("remember").checked) localStorage.setItem("dc_token", S.token);
+    else localStorage.removeItem("dc_token");
+
+    S.target = id; S.filter = "all"; S.tab = "friends";
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab==="friends"));
+    $("go").disabled = true; $("export").disabled = true;
+    $("profileSlot").innerHTML = ""; $("pane").innerHTML = ""; $("stats").style.display = "none";
+
+    const d = { target:id, generatedAt:new Date().toISOString(), user:null, profile:null,
+                mutual:[], friends:[], calls:[], skipped:[], channels:[], guilds:[], errors:[] };
+
+    setStatus("perfil…");
+    try{ d.user = await api(`/users/${id}`, { token:"" }); }
+    catch(e){ d.errors.push("perfil: "+e.message); }
+
+    try{ await api("/users/@me"); }catch(e){ d.errors.push("token: "+e.message); }
+
+    try{
+      const p = await api(`/users/${id}/profile?with_mutual_guilds=true&with_mutual_friends=true`);
+      d.profile = p;
+      d.mutual = (p.mutual_friends||[]).map(u=>({ id:u.id, username:u.username, avatar:u.avatar }));
+    }catch(e){ d.errors.push("profile: "+e.message); }
+
+    try{ d.friends = await api("/users/@me/relationships") || []; }
+    catch(e){ d.errors.push("amigos: "+e.message); }
+
+    try{ d.channels = await api("/users/@me/channels") || []; }
+    catch(e){ d.errors.push("canais: "+e.message); }
+
+    if(d.channels.length){
+      const r = await scanCalls(d.channels, id, onlyTarget, maxDm);
+      d.calls = r.calls; d.skipped = r.skipped;
+    }
+
+    setStatus("servidores…");
+    try{
+      const gs = (await sharedGuilds(id)).slice(0, maxGuild);
+      d.guilds = gs.map(g => ({ id:g.id, name:g.name, icon:g.icon, messages:[], total:null,
+                                busy:false, indexing:false, error:null }));
+      d.guildsCount = d.guilds.length;
+    }catch(e){ d.errors.push("servidores: "+e.message); }
+
+    S.data = d;
+    $("profileSlot").innerHTML = profileHtml();
+    $("tabs").style.display = "flex";
+
+    // primeira página de cada servidor (sequencial p/ respeitar rate limit)
+    for(const g of d.guilds){
+      setStatus(`mensagens · ${g.name}`);
+      await loadGuildMessages(g, 1);
+    }
+
+    renderPane(); updateStats();
+    setStatus(`ok — ${d.calls.length} call(s) · ${d.guilds.reduce((a,g)=>a+g.messages.length,0)} msg(s)`);
+    $("go").disabled = false; $("export").disabled = false;
+  }
+
+  function exportJson(){
+    if(!S.data) return;
+    const blob = new Blob([JSON.stringify(S.data,null,2)], { type:"application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `discord_${S.target}_${Date.now()}.json`;
+    a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  /* ---------- boot ---------- */
+  const saved = localStorage.getItem("dc_token");
+  if(saved) $("token").value = saved;
+
+  document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+    S.tab = t.dataset.tab;
+    document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x===t));
+    renderPane();
+  });
+  $("go").onclick = () => investigate().catch(e => {
+    setStatus("erro: "+e.message, true); $("go").disabled = false;
+  });
+  $("export").onclick = exportJson;
+  $("target").addEventListener("keydown", e => { if(e.key==="Enter") $("go").click(); });
+})();
+</script>
+</body>
+</html>
