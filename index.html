@@ -3,173 +3,270 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Discord Intel v2</title>
+<meta name="theme-color" content="#07080c">
+<title>Discord Intel v3 — Global OSINT</title>
 <style>
   :root{
-    --bg:#08090d; --card:rgba(255,255,255,.045); --stroke:rgba(255,255,255,.09);
-    --txt:#e9ecf5; --dim:#8b93a7; --acc:#7c5cff; --acc2:#22d3ee;
+    --bg:#07080c; --panel:rgba(255,255,255,.045); --panel2:rgba(255,255,255,.028);
+    --stroke:rgba(255,255,255,.09); --stroke2:rgba(255,255,255,.055);
+    --txt:#eef1f8; --dim:#8b93a7; --dim2:#697089;
+    --acc:#8b5cf6; --acc2:#22d3ee; --acc3:#f472b6;
     --ok:#3ddc97; --warn:#ffb020; --bad:#ff5f6d;
     --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --r:20px;
   }
   *{box-sizing:border-box}
+  html,body{height:100%}
   body{
-    margin:0;color:var(--txt);min-height:100vh;
-    background:radial-gradient(1200px 600px at 8% -12%,#1b1440 0,transparent 60%),
-               radial-gradient(900px 500px at 96% -4%,#0b3b45 0,transparent 55%),var(--bg);
-    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;
+    margin:0; color:var(--txt); background:var(--bg); overflow-x:hidden;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
   }
-  .wrap{max-width:1100px;margin:0 auto;padding:26px 16px 90px}
-  header{display:flex;gap:14px;align-items:center;margin-bottom:22px;flex-wrap:wrap}
-  .logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:800;
-    color:#0a0b10;background:linear-gradient(135deg,var(--acc),var(--acc2));
-    box-shadow:0 8px 26px rgba(124,92,255,.42)}
-  h1{font-size:19px;margin:0;letter-spacing:-.4px}
-  header p{margin:2px 0 0;font-size:12.5px;color:var(--dim)}
-  .pill{margin-left:auto;font-size:11.5px;color:var(--dim);border:1px solid var(--stroke);
-    padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.03)}
-  .card{background:var(--card);border:1px solid var(--stroke);border-radius:20px;
-    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 18px 50px rgba(0,0,0,.42)}
-  .panel{padding:20px}
-  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
-  label{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;
-    color:var(--dim);margin-bottom:7px;font-weight:600}
-  input{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--stroke);
-    background:rgba(0,0,0,.34);color:var(--txt);font:14px var(--mono);outline:none;transition:.18s}
-  input:focus{border-color:rgba(124,92,255,.75);box-shadow:0 0 0 3px rgba(124,92,255,.16)}
-  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:16px}
-  button{border:0;border-radius:12px;padding:12px 20px;font:700 14px system-ui,sans-serif;cursor:pointer;
-    color:#fff;background:linear-gradient(135deg,var(--acc),#5b8cff);transition:.18s;
-    box-shadow:0 10px 26px rgba(124,92,255,.32)}
-  button:hover{transform:translateY(-1px);filter:brightness(1.07)}
-  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
-  button.ghost{background:rgba(255,255,255,.06);border:1px solid var(--stroke);box-shadow:none;color:var(--txt)}
-  button.sm{padding:7px 12px;font-size:12px;border-radius:10px}
-  .check{display:flex;gap:8px;align-items:center;font:12.5px var(--mono);color:var(--dim)}
-  .check input{width:15px;height:15px;accent-color:var(--acc)}
-  #status{font:12.5px var(--mono);color:var(--dim)}
-  #status.err{color:var(--bad)}
-  .stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin-top:18px}
-  .stat{padding:14px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid var(--stroke)}
-  .stat b{display:block;font-size:23px;letter-spacing:-.6px}
-  .stat span{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
-  .profile{display:flex;gap:18px;padding:22px;align-items:center;margin-top:22px;position:relative;overflow:hidden}
-  .profile .banner{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.26;filter:blur(2px)}
-  .profile .inner{position:relative;display:flex;gap:18px;align-items:center;flex-wrap:wrap;width:100%}
-  .avatar{width:86px;height:86px;border-radius:50%;border:2px solid rgba(255,255,255,.16);
-    object-fit:cover;background:#15171f}
-  .profile h2{margin:0;font-size:20px;letter-spacing:-.4px}
-  .tag{font:12.5px var(--mono);color:var(--dim)}
-  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
-  .badge{font-size:10.5px;font-weight:600;padding:4px 9px;border-radius:999px;
-    background:rgba(124,92,255,.16);border:1px solid rgba(124,92,255,.4);color:#c9bcff}
-  .badge.b{background:rgba(34,211,238,.13);border-color:rgba(34,211,238,.38);color:#a9f0fb}
-  .tabs{display:flex;gap:8px;margin:22px 0 16px;overflow-x:auto;padding-bottom:4px}
-  .tab{white-space:nowrap;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;
-    color:var(--dim);border:1px solid var(--stroke);background:rgba(255,255,255,.03);cursor:pointer}
-  .tab.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,rgba(124,92,255,.95),rgba(91,140,255,.95))}
-  .pane{display:grid;gap:16px}
-  section.card h3{margin:0;padding:15px 20px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
-    color:var(--dim);border-bottom:1px solid var(--stroke);display:flex;gap:10px;align-items:center}
-  section.card h3 em{font-style:normal;color:var(--txt);background:rgba(255,255,255,.07);
-    padding:2px 8px;border-radius:999px;font-size:11px;letter-spacing:0}
-  .list{max-height:520px;overflow:auto;padding:8px}
-  .item{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;transition:.15s}
-  .item:hover{background:rgba(255,255,255,.05)}
-  .item img{width:38px;height:38px;border-radius:50%;flex:0 0 auto;background:#15171f;object-fit:cover}
-  .meta{min-width:0}
-  .meta b{display:block;font-size:13.5px;font-weight:600}
-  .meta small{display:block;font:11px var(--mono);color:var(--dim);margin-top:2px}
-  .right{margin-left:auto;text-align:right;font:11px var(--mono);color:var(--dim);flex:0 0 auto}
-  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
-  .hit{border:1px solid rgba(61,220,151,.45);background:rgba(61,220,151,.08)}
-  .empty{padding:22px;text-align:center;color:var(--dim);font-size:13px}
-  .filters{display:flex;gap:8px;padding:10px 12px 0;flex-wrap:wrap}
-  .fchip{padding:7px 13px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
-    color:var(--dim);border:1px solid var(--stroke);background:rgba(255,255,255,.03)}
-  .fchip.on{color:#fff;background:rgba(124,92,255,.55);border-color:transparent}
-  .guild{overflow:hidden}
-  .ghead{display:flex;gap:12px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--stroke)}
-  .ghead img{width:34px;height:34px;border-radius:11px;object-fit:cover;background:#15171f}
-  .gname{min-width:0;font-size:13.5px;font-weight:700}
-  .gname small{display:block;font:11px var(--mono);color:var(--dim);font-weight:400}
-  .gstat{margin-left:auto;font:11.5px var(--mono);color:var(--dim)}
-  .msg{padding:11px 12px;border-radius:14px}
-  .msg:hover{background:rgba(255,255,255,.05)}
+  .aurora{position:fixed;inset:-20% -10% auto -10%;height:130vh;z-index:0;pointer-events:none;filter:blur(90px);opacity:.55}
+  .aurora span{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:drift 22s ease-in-out infinite alternate}
+  .aurora span:nth-child(1){width:46vw;height:46vw;left:-6vw;top:-8vh;background:#5b21b6;animation-duration:19s}
+  .aurora span:nth-child(2){width:40vw;height:40vw;right:-4vw;top:2vh;background:#0e7490;animation-duration:25s}
+  .aurora span:nth-child(3){width:32vw;height:32vw;left:38vw;top:18vh;background:#9d174d;animation-duration:31s;opacity:.7}
+  @keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(4vw,7vh,0) scale(1.18)}}
+
+  .topbar{position:sticky;top:0;z-index:40;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    background:linear-gradient(180deg,rgba(7,8,12,.92),rgba(7,8,12,.62));border-bottom:1px solid var(--stroke2)}
+  .topbar .inner{max-width:1180px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:13px}
+  .logo{width:38px;height:38px;border-radius:13px;flex:0 0 auto;display:grid;place-items:center;
+    font-weight:900;font-size:17px;color:#0a0b10;background:linear-gradient(135deg,#a78bfa,#22d3ee 60%,#f472b6);
+    box-shadow:0 10px 30px rgba(139,92,246,.45)}
+  .brand{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.1}
+  .brand small{display:block;font-size:10.5px;font-weight:500;color:var(--dim2);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+  .live{margin-left:auto;display:flex;align-items:center;gap:8px;font:11.5px var(--mono);color:var(--dim);
+    border:1px solid var(--stroke);background:rgba(255,255,255,.03);padding:7px 12px;border-radius:999px;max-width:62vw;
+    overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .live i{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(61,220,151,.6);animation:pulse 2.2s infinite}
+  .live i.err{background:var(--bad);animation:none}
+  .live i.busy{background:var(--warn);animation:pulse 1s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,220,151,.5)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16px 100px}
+  .card{background:var(--panel);border:1px solid var(--stroke);border-radius:var(--r);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    box-shadow:0 20px 60px -20px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.05)}
+  .panel{padding:18px}
+  .grid{display:grid;gap:13px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  label{display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim2);
+    font-weight:700;margin-bottom:7px}
+  input,select{width:100%;padding:12px 13px;border-radius:13px;border:1px solid var(--stroke);
+    background:rgba(0,0,0,.42);color:var(--txt);font:14px var(--mono);outline:none;transition:.18s}
+  input::placeholder{color:#4d5468}
+  input:focus{border-color:rgba(139,92,246,.8);box-shadow:0 0 0 3px rgba(139,92,246,.18);background:rgba(0,0,0,.55)}
+  .row{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:15px}
+  button{border:0;border-radius:13px;padding:12px 20px;font:800 13.5px system-ui,sans-serif;cursor:pointer;
+    color:#fff;background:linear-gradient(135deg,#8b5cf6,#6366f1 55%,#22d3ee);transition:.18s;
+    box-shadow:0 12px 30px -8px rgba(139,92,246,.7)}
+  button:hover{transform:translateY(-1px);filter:brightness(1.08)}
+  button:active{transform:translateY(0) scale(.99)}
+  button:disabled{opacity:.42;cursor:not-allowed;transform:none;box-shadow:none}
+  button.ghost{background:rgba(255,255,255,.055);border:1px solid var(--stroke);box-shadow:none;color:var(--txt)}
+  button.ghost:hover{background:rgba(255,255,255,.1)}
+  button.sm{padding:7px 12px;font-size:11.5px;border-radius:10px;font-weight:700}
+  button.tiny{padding:5px 10px;font-size:11px;border-radius:9px;font-weight:700}
+  .check{display:flex;gap:8px;align-items:center;font:12px var(--mono);color:var(--dim);cursor:pointer;user-select:none}
+  .check input{width:15px;height:15px;accent-color:var(--acc);flex:0 0 auto}
+
+  .bar{height:3px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:16px;display:none}
+  .bar.on{display:block}
+  .bar i{display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,#8b5cf6,#22d3ee,#f472b6);transition:width .35s ease;
+    background-size:220% 100%;animation:slide 2.4s linear infinite}
+  @keyframes slide{to{background-position:220% 0}}
+
+  /* HERO */
+  .hero{position:relative;overflow:hidden;border-radius:26px;margin-top:20px;border:1px solid var(--stroke);
+    background:linear-gradient(160deg,rgba(139,92,246,.16),rgba(34,211,238,.05) 55%,rgba(0,0,0,.25))}
+  .hero .bn{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.34;filter:blur(3px) saturate(1.2)}
+  .hero .bn::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,8,12,.3),rgba(7,8,12,.92))}
+  .hero .cnt{position:relative;padding:22px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  .av{width:92px;height:92px;border-radius:50%;object-fit:cover;background:#14161e;
+    border:2px solid rgba(255,255,255,.2);box-shadow:0 14px 40px -10px rgba(0,0,0,.9)}
+  .hero h2{margin:0;font-size:22px;letter-spacing:-.6px;line-height:1.15}
+  .handle{font:12.5px var(--mono);color:#a5aec4;margin-top:3px}
+  .handle b{color:var(--dim)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-size:10.5px;font-weight:800;letter-spacing:.03em;padding:4px 9px;border-radius:99px;
+    background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.45);color:#d3c6ff}
+  .chip.c2{background:rgba(34,211,238,.13);border-color:rgba(34,211,238,.4);color:#b3f3ff}
+  .chip.c3{background:rgba(61,220,151,.12);border-color:rgba(61,220,151,.42);color:#a7f3cf}
+  .chip.c4{background:rgba(244,114,182,.13);border-color:rgba(244,114,182,.4);color:#ffc9e5}
+  .bio{font-size:12.5px;color:#c2c9da;margin:10px 0 0;line-height:1.55;max-width:70ch;white-space:pre-wrap}
+
+  /* STATS */
+  .statgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));margin-top:16px}
+  .stat{padding:14px;border-radius:17px;background:var(--panel2);border:1px solid var(--stroke2);position:relative;overflow:hidden}
+  .stat::before{content:"";position:absolute;inset:0 auto 0 0;width:2px;background:linear-gradient(180deg,#8b5cf6,#22d3ee);opacity:.9}
+  .stat b{display:block;font-size:22px;letter-spacing:-.7px;font-variant-numeric:tabular-nums}
+  .stat span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim2);font-weight:700}
+
+  /* TABS */
+  .tabs{display:flex;gap:7px;margin:20px 0 15px;overflow-x:auto;padding:5px;border-radius:16px;
+    background:rgba(255,255,255,.03);border:1px solid var(--stroke2);scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{white-space:nowrap;padding:9px 15px;border-radius:12px;font-size:12.5px;font-weight:800;
+    color:var(--dim);cursor:pointer;transition:.16s;display:flex;align-items:center;gap:7px}
+  .tab:hover{color:var(--txt);background:rgba(255,255,255,.05)}
+  .tab.on{color:#fff;background:linear-gradient(135deg,rgba(139,92,246,.95),rgba(99,102,241,.9) 60%,rgba(34,211,238,.85));
+    box-shadow:0 10px 26px -10px rgba(139,92,246,.9)}
+  .tab em{font-style:normal;font-size:10.5px;padding:1px 6px;border-radius:99px;background:rgba(255,255,255,.16)}
+
+  .pane{display:grid;gap:15px}
+  section h3{margin:0;padding:14px 17px;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim2);
+    font-weight:800;border-bottom:1px solid var(--stroke2);display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+  section h3 em{font-style:normal;font-size:10.5px;letter-spacing:0;color:var(--txt);
+    background:rgba(255,255,255,.08);padding:2px 8px;border-radius:99px}
+  section h3 .sp{margin-left:auto;display:flex;gap:7px;align-items:center}
+
+  .list{max-height:560px;overflow:auto;padding:7px}
+  .list::-webkit-scrollbar{width:9px}
+  .list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.13);border-radius:9px;border:2px solid transparent;background-clip:padding-box}
+  .item{display:flex;gap:12px;align-items:center;padding:10px 11px;border-radius:14px;transition:.14s;border:1px solid transparent}
+  .item:hover{background:rgba(255,255,255,.05);border-color:var(--stroke2)}
+  .item img.av2{width:38px;height:38px;border-radius:50%;flex:0 0 auto;object-fit:cover;background:#14161e}
+  .meta{min-width:0;flex:1 1 auto}
+  .meta b{display:block;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meta small{display:block;font:11px var(--mono);color:var(--dim2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .right{margin-left:auto;text-align:right;font:11px var(--mono);color:var(--dim2);flex:0 0 auto}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px}
+  .hit{border-color:rgba(61,220,151,.4)!important;background:rgba(61,220,151,.07)!important}
+  .empty{padding:24px;text-align:center;color:var(--dim2);font-size:13px;line-height:1.6}
+  .empty code{font-family:var(--mono);color:#a5aec4;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:5px}
+
+  .filters{display:flex;gap:7px;padding:11px 13px 0;flex-wrap:wrap}
+  .fchip{padding:7px 13px;border-radius:10px;font-size:11.5px;font-weight:800;cursor:pointer;color:var(--dim);
+    border:1px solid var(--stroke);background:rgba(255,255,255,.03);transition:.15s}
+  .fchip:hover{color:var(--txt)}
+  .fchip.on{color:#fff;background:linear-gradient(135deg,rgba(139,92,246,.75),rgba(34,211,238,.55));border-color:transparent}
+
+  .toolbar{display:flex;gap:9px;padding:13px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--stroke2)}
+  .toolbar input{flex:1 1 240px;min-width:150px}
+
+  .ghead{display:flex;gap:11px;align-items:center;padding:12px 15px;border-bottom:1px solid var(--stroke2);flex-wrap:wrap}
+  .ghead img.gi{width:34px;height:34px;border-radius:11px;object-fit:cover;background:#14161e;flex:0 0 auto}
+  .gname{min-width:0;font-size:13.5px;font-weight:800}
+  .gname small{display:block;font:10.5px var(--mono);color:var(--dim2);font-weight:400;margin-top:2px}
+  .gstat{margin-left:auto;font:11px var(--mono);color:var(--dim2)}
+
+  .msg{padding:10px 11px;border-radius:13px;border:1px solid transparent;transition:.14s}
+  .msg:hover{background:rgba(255,255,255,.045);border-color:var(--stroke2)}
   .mhead{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:12.5px}
-  .mhead b{font-weight:700}
-  .mhead span{font:11px var(--mono);color:var(--dim)}
-  .mbody{margin:5px 0 0;font-size:13px;line-height:1.5;color:#d6dbe8;word-wrap:break-word}
-  .mbody a{color:var(--acc2)}
-  details.card{margin-top:18px;padding:0}
-  details.card summary{padding:15px 20px;cursor:pointer;font:600 12px system-ui;color:var(--dim);
-    letter-spacing:.09em;text-transform:uppercase}
-  pre{overflow:auto;margin:0;padding:0 20px 20px;font:12px/1.55 var(--mono);color:#b9c2d8;white-space:pre}
-  .note{font-size:11.5px;color:var(--dim);line-height:1.6;margin:10px 0 0}
-  .list::-webkit-scrollbar{width:8px}
-  .list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:9px}
+  .mhead b{font-weight:800}
+  .mhead span{font:10.5px var(--mono);color:var(--dim2)}
+  .mhead a{color:var(--acc2);text-decoration:none;font:10.5px var(--mono)}
+  .mhead a:hover{text-decoration:underline}
+  .mbody{margin:5px 0 0;font-size:13px;line-height:1.55;color:#d5dbeb;word-break:break-word;white-space:pre-wrap}
+
+  .tl{display:flex;gap:3px;align-items:flex-end;height:76px;padding:6px 15px 15px;overflow-x:auto}
+  .tl i{flex:1 0 5px;min-width:5px;border-radius:3px 3px 0 0;
+    background:linear-gradient(180deg,#22d3ee,#8b5cf6);opacity:.9;transition:.2s}
+  .tl i:hover{opacity:1;filter:brightness(1.3)}
+  .legend{display:flex;justify-content:space-between;padding:0 15px 13px;font:10px var(--mono);color:var(--dim2)}
+
+  .mutual-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));padding:13px}
+  .mcard{display:flex;gap:10px;align-items:center;padding:10px;border-radius:14px;background:var(--panel2);
+    border:1px solid var(--stroke2);transition:.15s;text-decoration:none;color:inherit}
+  .mcard:hover{transform:translateY(-2px);border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.1)}
+  .mcard img{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#14161e}
+  .mcard b{display:block;font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mcard small{font:10px var(--mono);color:var(--dim2)}
+
+  details.card{margin-top:16px;padding:0;overflow:hidden}
+  details.card summary{padding:14px 18px;cursor:pointer;font:800 11px system-ui;color:var(--dim2);
+    letter-spacing:.1em;text-transform:uppercase}
+  pre{overflow:auto;margin:0;padding:0 18px 18px;font:12px/1.55 var(--mono);color:#aeb7cd;white-space:pre}
+
+  #toasts{position:fixed;right:14px;bottom:14px;z-index:90;display:flex;flex-direction:column;gap:9px;max-width:min(360px,90vw)}
+  .toast{padding:11px 14px;border-radius:13px;font-size:12.5px;line-height:1.45;
+    background:rgba(20,22,30,.96);border:1px solid var(--stroke);box-shadow:0 16px 40px -12px #000;
+    animation:in .25s ease}
+  .toast.err{border-color:rgba(255,95,109,.5)}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .fade{animation:up .3s ease}
+  @keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (max-width:560px){
+    .hero .cnt{padding:16px}
+    .av{width:74px;height:74px}
+    .hero h2{font-size:19px}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="logo">D</div>
-    <div><h1>Discord Intel v2</h1><p>Perfil · Amigos · Calls · Mensagens em servidores</p></div>
-    <div class="pill">paginado · exportável</div>
-  </header>
+<div class="aurora"><span></span><span></span><span></span></div>
 
-  <div class="card panel">
+<div class="topbar"><div class="inner">
+  <div class="logo">D</div>
+  <div class="brand">Discord Intel<small>global osint · v3</small></div>
+  <div class="live"><i id="led"></i><span id="status">aguardando…</span></div>
+</div></div>
+
+<div class="wrap">
+  <section class="card panel">
     <div class="grid">
-      <div><label for="target">ID do usuário alvo</label>
-        <input id="target" inputmode="numeric" placeholder="ex.: 80351110224678912" autocomplete="off"></div>
-      <div><label for="token">Token da conta consultora</label>
-        <input id="token" type="password" placeholder="Authorization (sem 'Bot ')" autocomplete="off"></div>
+      <div><label for="target">ID do alvo</label>
+        <input id="target" inputmode="numeric" placeholder="80351110224678912" autocomplete="off"></div>
+      <div><label for="token">Token da consultora</label>
+        <input id="token" type="password" placeholder="Authorization" autocomplete="off"></div>
       <div><label for="base">Endpoint / proxy</label>
         <input id="base" value="https://discord.com/api/v9"></div>
-      <div><label for="maxdm">Máx. DMs a varrer</label>
-        <input id="maxdm" value="40" inputmode="numeric"></div>
-      <div><label for="maxguild">Máx. servidores</label>
-        <input id="maxguild" value="12" inputmode="numeric"></div>
+    </div>
+    <div class="grid" style="margin-top:13px">
+      <div><label for="maxdm">DMs a varrer</label><input id="maxdm" value="60" inputmode="numeric"></div>
+      <div><label for="dmpages">Páginas por DM (100 cada)</label><input id="dmpages" value="3" inputmode="numeric"></div>
+      <div><label for="maxguild">Servidores (máx.)</label><input id="maxguild" value="20" inputmode="numeric"></div>
+      <div><label for="gpaginas">Páginas iniciais / servidor</label><input id="gpaginas" value="1" inputmode="numeric"></div>
     </div>
 
     <div class="row">
-      <button id="go">Investigar</button>
-      <button id="export" class="ghost" disabled>Exportar JSON</button>
-      <label class="check"><input id="onlyTarget" type="checkbox" checked> só calls com o alvo</label>
+      <button id="go">Investigar globalmente</button>
+      <button id="exportJson" class="ghost" disabled>JSON</button>
+      <button id="exportCsv" class="ghost" disabled>CSV</button>
+      <label class="check"><input id="allGuilds" type="checkbox"> varrer <b style="color:#c9d0e2">todos</b> meus servidores</label>
       <label class="check"><input id="remember" type="checkbox" checked> lembrar token</label>
-      <span id="status">aguardando…</span>
     </div>
 
-    <div class="stats" id="stats" style="display:none">
-      <div class="stat"><b id="sFriends">0</b><span>amigos</span></div>
-      <div class="stat"><b id="sMutual">0</b><span>em comum</span></div>
-      <div class="stat"><b id="sDms">0</b><span>DMs/grupos</span></div>
-      <div class="stat"><b id="sCalls">0</b><span>calls</span></div>
-      <div class="stat"><b id="sGuilds">0</b><span>servidores</span></div>
-      <div class="stat"><b id="sMsgs">0</b><span>mensagens</span></div>
-    </div>
+    <div class="bar" id="bar"><i id="barfill"></i></div>
+    <p class="empty" style="padding:14px 0 0;text-align:left;font-size:11.5px;color:var(--dim2)">
+      Mensagens e calls vêm do token da consultora; o ID alimenta perfil, amigos mútuos, servidores compartilhados
+      e o filtro <code>author_id</code>. Calls existem apenas em canais privados (DM/grupo) — mensagem <code>type 3</code>.
+    </p>
+  </section>
 
-    <p class="note">Amigos, calls e mensagens saem do <b>token da consultora</b>.
-      O ID alvo alimenta o perfil, os amigos em comum, os servidores compartilhados e o filtro
-      <code>author_id</code> da busca.</p>
+  <div id="hero"></div>
+  <div class="statgrid" id="stats" style="display:none">
+    <div class="stat"><b id="sFriends">0</b><span>amigos</span></div>
+    <div class="stat"><b id="sMutual">0</b><span>mútuos</span></div>
+    <div class="stat"><b id="sDms">0</b><span>DMs</span></div>
+    <div class="stat"><b id="sCalls">0</b><span>calls</span></div>
+    <div class="stat"><b id="sGuilds">0</b><span>servidores</span></div>
+    <div class="stat"><b id="sMsgs">0</b><span>mensagens</span></div>
   </div>
 
-  <div id="profileSlot"></div>
-  <div class="tabs" id="tabs" style="display:none">
-    <div class="tab on" data-tab="friends">Amigos</div>
-    <div class="tab" data-tab="calls">Calls</div>
-    <div class="tab" data-tab="messages">Mensagens</div>
-  </div>
+  <nav class="tabs" id="tabs" style="display:none">
+    <div class="tab on" data-tab="friends">Amigos <em id="nFriends">0</em></div>
+    <div class="tab" data-tab="mutuals">Mútuos <em id="nMutual">0</em></div>
+    <div class="tab" data-tab="calls">Calls <em id="nCalls">0</em></div>
+    <div class="tab" data-tab="messages">Mensagens <em id="nMsgs">0</em></div>
+    <div class="tab" data-tab="guilds">Servidores <em id="nGuilds">0</em></div>
+  </nav>
+
   <div class="pane" id="pane"></div>
 
   <details class="card">
-    <summary>proxy local opcional (CORS/403) — Python no Termux</summary>
+    <summary>proxy local opcional (CORS / 403) — python</summary>
     <pre id="proxyCode"></pre>
   </details>
 </div>
 
+<div id="toasts"></div>
+
 <script id="proxy-src" type="text/plain">
 #!/usr/bin/env python3
-# salve como proxy.py e rode: python proxy.py
+# python proxy.py  -> http://127.0.0.1:8899
 import urllib.request, urllib.error
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -215,192 +312,299 @@ ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()
 <script>
 (() => {
   "use strict";
+
   const $ = (id) => document.getElementById(id);
-  const S = { base:"https://discord.com/api/v9", token:"", target:"", tab:"friends",
-              filter:"all", data:null };
+  const S = {
+    base: "https://discord.com/api/v9", token: "", target: "",
+    tab: "friends", filter: "all", msgFilter: "", data: null, loading: false,
+  };
 
   $("proxyCode").textContent = $("proxy-src").textContent.trim();
 
+  /* ---------------- utils ---------------- */
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c =>
     ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 
-  function snowflakeDate(id){ try{ return new Date(Number((BigInt(id)>>22n)+1420070400000n)); }catch{ return null; } }
+  function snowflakeDate(id){
+    try { return new Date(Number((BigInt(id) >> 22n) + 1420070400000n)); } catch { return null; }
+  }
   function avatarUrl(u){
     if(!u) return "https://cdn.discordapp.com/embed/avatars/0.png";
     if(u.avatar){
       const ext = u.avatar.startsWith("a_") ? "gif" : "png";
       return `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${ext}?size=128`;
     }
-    let i = 0; try{ i = Number((BigInt(u.id)>>22n) % 6n); }catch{}
+    let i = 0; try { i = Number((BigInt(u.id) >> 22n) % 6n); } catch {}
     return `https://cdn.discordapp.com/embed/avatars/${i}.png`;
   }
-  const guildIcon = (g) => g.icon
+  const guildIcon = (g) => g && g.icon
     ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png?size=64`
     : "https://cdn.discordapp.com/embed/avatars/3.png";
+
   const relLabel = { 1:"amigo", 2:"bloqueado", 3:"pedido recebido", 4:"pedido enviado" };
-  const FLAGS = [[1<<0,"STAFF"],[1<<1,"PARTNER"],[1<<2,"HYPESQUAD"],[1<<3,"BUG HUNTER 1"],
+  const FLAGS = [[1<<0,"STAFF"],[1<<1,"PARTNER"],[1<<2,"HYPESQUAD"],[1<<3,"BUG HUNTER I"],
     [1<<6,"BRAVERY"],[1<<7,"BRILLIANCE"],[1<<8,"BALANCE"],[1<<9,"EARLY SUPPORTER"],
-    [1<<14,"BUG HUNTER 2"],[1<<17,"BOT DEV"],[1<<18,"MODERATOR"],[1<<22,"ACTIVE DEV"]];
+    [1<<14,"BUG HUNTER II"],[1<<17,"BOT DEV"],[1<<18,"MODERATOR"],[1<<22,"ACTIVE DEV"]];
 
-  const setStatus = (m, err=false) => { const e=$("status"); e.textContent=m; e.className = err?"err":""; };
-  const fmtDate = (iso) => { try{ return new Date(iso).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"}); }catch{ return iso; } };
-  const fmtDur = (s) => s==null ? "sem registro" : s<60 ? s+"s" : s<3600 ? Math.floor(s/60)+"m "+(s%60)+"s" : Math.floor(s/3600)+"h "+Math.floor(s%3600/60)+"m";
+  function fmtDate(iso){ try{ return new Date(iso).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"}); }catch{ return iso; } }
+  function fmtDay(iso){ try{ return new Date(iso).toLocaleDateString("pt-BR"); }catch{ return iso; } }
+  function fmtDur(s){
+    if(s == null) return "sem registro";
+    if(s < 60) return s + "s";
+    if(s < 3600) return Math.floor(s/60) + "m " + (s%60) + "s";
+    return Math.floor(s/3600) + "h " + Math.floor((s%3600)/60) + "m";
+  }
 
-  async function api(path, { token = S.token, method="GET", body=null, retries=4 } = {}) {
-    const url = S.base.replace(/\/+$/,"") + path;
-    for(let i=0;i<=retries;i++){
-      const headers = { Accept:"application/json" };
+  function led(state){ $("led").className = state || ""; }
+  function setStatus(msg, state){
+    $("status").textContent = msg;
+    led(state || "busy");
+  }
+  function progress(pct){
+    const b = $("bar");
+    b.classList.toggle("on", pct >= 0);
+    $("barfill").style.width = Math.max(0, Math.min(100, pct)) + "%";
+  }
+  function toast(msg, kind){
+    const el = document.createElement("div");
+    el.className = "toast" + (kind === "err" ? " err" : "");
+    el.textContent = msg;
+    $("toasts").appendChild(el);
+    setTimeout(() => { el.style.opacity = "0"; el.style.transition = ".4s"; setTimeout(()=>el.remove(), 400); }, 5200);
+  }
+
+  /* ---------------- api ---------------- */
+  async function api(path, { token = S.token, method = "GET", body = null, retries = 4 } = {}){
+    const url = S.base.replace(/\/+$/, "") + path;
+    for(let i = 0; i <= retries; i++){
+      const headers = { Accept: "application/json" };
       if(token) headers.Authorization = token;
       if(body) headers["Content-Type"] = "application/json";
-      const res = await fetch(url,{ method, headers,
-        body: body ? JSON.stringify(body) : undefined, cache:"no-store" });
+      const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined, cache: "no-store" });
       if(res.status === 429){
-        const j = await res.json().catch(()=>({retry_after:1}));
-        await sleep(Math.ceil((j.retry_after||1)*1000)+300);
+        const j = await res.json().catch(() => ({ retry_after: 1 }));
+        await sleep(Math.ceil((j.retry_after || 1) * 1000) + 320);
         continue;
       }
-      if(res.status === 202) return { __indexing:true };
+      if(res.status === 202) return { __indexing: true };
       if(!res.ok){
-        const t = await res.text().catch(()=> "");
-        const e = new Error("HTTP "+res.status+" "+t.slice(0,140)); e.status = res.status; throw e;
+        const t = await res.text().catch(() => "");
+        const e = new Error("HTTP " + res.status + " " + t.slice(0, 130));
+        e.status = res.status;
+        throw e;
       }
       return res.status === 204 ? null : res.json();
     }
-    throw new Error("429 persistente — diminua 'máx. servidores'.");
+    throw new Error("429 persistente — reduza o volume de varredura");
   }
 
-  /* ---------- coleta ---------- */
-  async function scanCalls(channels, targetId, onlyTarget, maxCh){
-    const dms = channels.filter(c => c.type===1 || c.type===3).slice(0, maxCh);
-    const calls = []; const seen = new Set(); const skipped = [];
-    for(let i=0;i<dms.length;i++){
-      const ch = dms[i];
-      const title = ch.type===1 ? (ch.recipients?.[0]?.username || "DM") : (ch.name || "grupo");
-      setStatus(`calls · ${i+1}/${dms.length} · ${title}`);
+  /* ---------------- coleta: canais privados (calls + msgs do alvo) ---------------- */
+  async function scanPrivate(targetId, opts){
+    const all = (S.data.channels || []).filter(c => c.type === 1 || c.type === 3);
+    const chans = all.slice(0, opts.maxChannels);
+    const calls = [], msgs = [], skipped = [];
+
+    for(let i = 0; i < chans.length; i++){
+      const ch = chans[i];
+      const people = (ch.recipients || []).map(r => ({
+        id: r.id, username: r.username, global_name: r.global_name || null, avatar: r.avatar,
+      }));
+      const title = ch.type === 1
+        ? (people[0]?.global_name || people[0]?.username || "DM")
+        : (ch.name || "grupo");
+      setStatus(`canais privados ${i+1}/${chans.length} · ${title}`);
+      progress(10 + (i / Math.max(1, chans.length)) * 45);
+
+      let before = null;
       try{
-        const msgs = await api(`/channels/${ch.id}/messages?limit=100`);
-        for(const m of msgs){
-          if(m.type !== 3 || seen.has(m.id)) continue;
-          const involved = [...new Set((ch.recipients||[]).map(r=>r.id).concat(m.author?.id||[]))];
-          if(onlyTarget && targetId && !involved.includes(targetId)) continue;
-          seen.add(m.id);
-          const start = new Date(m.timestamp).getTime();
-          const end = m.call?.ended_timestamp ? new Date(m.call.ended_timestamp).getTime() : null;
-          calls.push({
-            id:m.id, channelId:ch.id, channelType:ch.type, channelName:title,
-            recipients:(ch.recipients||[]).map(r=>({id:r.id,username:r.username,avatar:r.avatar})),
-            author: m.author ? {id:m.author.id,username:m.author.username,avatar:m.author.avatar} : null,
-            participants: m.call?.participants || involved,
-            timestamp:m.timestamp, ended:m.call?.ended_timestamp||null,
-            durationSec: end ? Math.max(0, Math.round((end-start)/1000)) : null,
-            missed: !m.call?.ended_timestamp,
-            withTarget: targetId ? involved.includes(targetId) : false,
-          });
+        for(let p = 0; p < opts.pagesPerDm; p++){
+          const qs = `?limit=100${before ? "&before=" + before : ""}`;
+          const batch = await api(`/channels/${ch.id}/messages${qs}`);
+          if(!batch || !batch.length) break;
+          before = batch[batch.length - 1].id;
+
+          for(const m of batch){
+            if(m.type === 3){
+              const involved = [...new Set(people.map(x => x.id).concat(m.author?.id || []))];
+              const start = new Date(m.timestamp).getTime();
+              const end = m.call?.ended_timestamp ? new Date(m.call.ended_timestamp).getTime() : null;
+              calls.push({
+                id: m.id, channelId: ch.id, channelType: ch.type, channelName: title,
+                recipients: people,
+                author: m.author ? { id:m.author.id, username:m.author.username, avatar:m.author.avatar } : null,
+                participants: m.call?.participants || involved,
+                timestamp: m.timestamp, ended: m.call?.ended_timestamp || null,
+                durationSec: end ? Math.max(0, Math.round((end - start) / 1000)) : null,
+                missed: !m.call?.ended_timestamp,
+                withTarget: involved.includes(targetId),
+              });
+            }
+            if(m.author?.id === targetId){
+              msgs.push({
+                id: m.id, source: "dm", context: title, channelId: ch.id,
+                channelName: title, guildId: null, guildName: "DM / grupo",
+                content: m.content || "", timestamp: m.timestamp,
+                attachments: (m.attachments||[]).length, embeds: (m.embeds||[]).length,
+                author: { id:m.author.id, username:m.author.username, global_name:m.author.global_name||null, avatar:m.author.avatar },
+                link: `https://discord.com/channels/@me/${ch.id}/${m.id}`,
+              });
+            }
+          }
+          if(batch.length < 100) break;
+          await sleep(140);
         }
-      }catch(e){ skipped.push({ channelId:ch.id, error:e.message }); }
-      await sleep(120);
-    }
-    calls.sort((a,b)=> new Date(b.timestamp)-new Date(a.timestamp));
-    return { calls, skipped };
-  }
-
-  async function sharedGuilds(targetId){
-    // 1) mutual_guilds do perfil
-    try{
-      const p = await api(`/users/${targetId}/profile?with_mutual_guilds=true&with_mutual_friends=true`);
-      if(p && p.mutual_guilds && p.mutual_guilds.length){
-        return p.mutual_guilds.map(g => ({ id:g.id, name:g.nick || g.id, icon:null }));
+      }catch(e){
+        skipped.push({ channel: title, channelId: ch.id, error: e.message });
       }
-    }catch{}
-    // 2) fallback: meus servidores (a busca dirá quais são válidos)
-    const mine = await api("/users/@me/guilds");
-    return (mine||[]).map(g => ({ id:g.id, name:g.name, icon:g.icon }));
+      await sleep(90);
+    }
+
+    const seen = new Set();
+    const uniq = calls.filter(c => (seen.has(c.id) ? false : (seen.add(c.id), true)))
+      .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return { calls: uniq, msgs, skipped };
   }
 
-  async function loadGuildInfo(g){
-    if(g.channelsMap) return;
+  /* ---------------- servidores ---------------- */
+  async function resolveServerInput(raw){
+    const input = String(raw || "").trim();
+    if(!input) throw new Error("cole um link/ID de servidor");
+
+    let m = input.match(/discord(?:app)?\.(?:gg|com\/invite)\/([A-Za-z0-9\-_]+)/i);
+    if(m){
+      const inv = await api(`/invites/${m[1]}?with_counts=true`);
+      if(!inv || !inv.guild) throw new Error("convite inválido ou expirado");
+      return { guildId: inv.guild.id, channelId: inv.channel?.id || null, name: inv.guild.name };
+    }
+    m = input.match(/channels\/(\d{15,21})(?:\/(\d{15,21}))?/);
+    if(m) return { guildId: m[1], channelId: m[2] || null };
+    if(/^\d{15,21}$/.test(input)) return { guildId: input, channelId: null };
+    throw new Error("formato não reconhecido — use link de convite, link de canal ou ID");
+  }
+
+  async function ensureGuildMeta(g){
+    if(g.metaLoaded) return;
+    g.metaLoaded = true;
     g.channelsMap = {};
+    try{
+      const gi = await api(`/guilds/${g.id}`);
+      g.name = gi.name || g.name;
+      g.icon = gi.icon || g.icon;
+      g.roles = gi.roles || [];
+    }catch(e){ /* sem acesso */ }
     try{
       const chs = await api(`/guilds/${g.id}/channels`);
       for(const c of chs) g.channelsMap[c.id] = c.name;
-    }catch{}
+    }catch(e){}
     try{
-      const gi = await api(`/guilds/${g.id}?with_counts=false`);
-      if(gi && gi.name) g.name = gi.name;
-      if(gi && gi.icon) g.icon = gi.icon;
-    }catch{}
+      const mem = await api(`/guilds/${g.id}/members/${S.target}`);
+      g.member = mem;
+      g.joined_at = mem.joined_at;
+      g.nick = mem.nick;
+    }catch(e){ /* alvo pode não ser membro */ }
+    await sleep(120);
   }
 
-  async function fetchPage(g, offset){
+  async function searchPage(g, offset){
     const q = new URLSearchParams({
       author_id: S.target, offset: String(offset),
       sort_by: "timestamp", sort_order: "desc", include_nsfw: "true",
     });
+    if(g.channelId) q.set("channel_id", g.channelId);
     const res = await api(`/guilds/${g.id}/messages/search?${q.toString()}`);
     if(res && res.__indexing){ g.indexing = true; return []; }
     g.indexing = false;
-    g.total = res.total_results || 0;
-    const hits = (res.messages || []).map(h => Array.isArray(h) ? h[0] : h).filter(Boolean);
+    g.total = (res && typeof res.total_results === "number") ? res.total_results : null;
+    const hits = (res?.messages || []).map(h => Array.isArray(h) ? h[0] : h).filter(Boolean);
     return hits.map(m => ({
-      id:m.id, channel_id:m.channel_id,
-      channelName: g.channelsMap?.[m.channel_id] || m.channel_id,
-      content: m.content || "",
-      timestamp: m.timestamp,
+      id: m.id, source: "guild", guildId: g.id, guildName: g.name,
+      channelId: m.channel_id, channelName: g.channelsMap?.[m.channel_id] || m.channel_id,
+      content: m.content || "", timestamp: m.timestamp,
+      attachments: (m.attachments || []).length, embeds: (m.embeds || []).length,
       author: { id:m.author?.id, username:m.author?.username, global_name:m.author?.global_name, avatar:m.author?.avatar },
-      attachments: (m.attachments||[]).length,
-      embeds: (m.embeds||[]).length,
       link: `https://discord.com/channels/${g.id}/${m.channel_id}/${m.id}`,
     }));
   }
 
-  async function loadGuildMessages(g, pages=1){
+  async function loadGuildPages(g, pages){
     if(g.busy) return;
     g.busy = true; g.error = null; renderPane();
+
     try{
-      await loadGuildInfo(g);
-      for(let p=0; p<pages; p++){
-        const hits = await fetchPage(g, g.messages.length);
+      await ensureGuildMeta(g);
+      for(let p = 0; p < pages; p++){
+        const hits = await searchPage(g, g.offset);
         if(!hits.length) break;
-        const ids = new Set(g.messages.map(m=>m.id));
-        for(const h of hits) if(!ids.has(h.id)) g.messages.push(h);
-        if(g.messages.length >= g.total) break;
-        await sleep(450);   // busca do Discord é rate-limitada
+        g.offset += hits.length;
+        const seen = new Set(g.messages.map(m => m.id));
+        for(const h of hits) if(!seen.has(h.id)) g.messages.push(h);
+        if(g.total != null && g.messages.length >= g.total) break;
+        if(hits.length < 25) break;
+        await sleep(450);   // busca do Discord é sensível a rate limit
       }
+      g.messages.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
     }catch(e){
       g.error = e.message;
+      toast(`${g.name}: ${e.message}`, "err");
     }finally{
       g.busy = false;
+      rebuildDerived();
       renderPane(); updateStats();
     }
   }
 
-  /* ---------- render ---------- */
-  function profileHtml(){
+  function rebuildDerived(){
+    const d = S.data; if(!d) return;
+    const all = [...d.guildMsgs, ...d.dmMsgs];
+    const months = {};
+    for(const m of all){
+      const k = (m.timestamp || "").slice(0, 7);
+      if(k) months[k] = (months[k] || 0) + 1;
+    }
+    d.timeline = months;
+    const chans = {};
+    for(const m of all){
+      const k = (m.guildName || "") + " › #" + (m.channelName || "");
+      chans[k] = (chans[k] || 0) + 1;
+    }
+    d.topChannels = Object.entries(chans).sort((a,b) => b[1] - a[1]).slice(0, 8);
+  }
+
+  /* ---------------- render ---------------- */
+  function heroHtml(){
     const d = S.data; if(!d || !d.user) return "";
     const u = d.user;
-    const badges = FLAGS.filter(([bit]) => (u.public_flags||0) & bit).map(([,n]) => n);
+    const badges = FLAGS.filter(([bit]) => (u.public_flags || 0) & bit).map(([,n]) => n);
     if(u.bot) badges.unshift("BOT");
     if(d.profile?.premium_type) badges.push("NITRO");
     const created = snowflakeDate(u.id);
     const banner = u.banner ? `https://cdn.discordapp.com/banners/${u.id}/${u.banner}.png?size=600` : "";
-    return `
-      <div class="card profile">
-        ${banner ? `<div class="banner" style="background-image:url('${esc(banner)}')"></div>`:""}
-        <div class="inner">
-          <img class="avatar" src="${esc(avatarUrl(u))}" alt="">
-          <div style="min-width:0">
-            <h2>${esc(u.global_name || u.username)}</h2>
-            <div class="tag">@${esc(u.username)} · ${esc(u.id)}</div>
-            ${created ? `<div class="tag">conta criada em ${created.toLocaleDateString("pt-BR")}</div>` : ""}
-            <div class="badges">
-              ${badges.map(b=>`<span class="badge b">${esc(b)}</span>`).join("")}
-              ${d.mutual ? `<span class="badge">${d.mutual.length} amigos em comum</span>` : ""}
-              ${d.guildsCount != null ? `<span class="badge">${d.guildsCount} servidores</span>` : ""}
-            </div>
+    const bio = d.profile?.user_profile?.bio || "";
+    const pron = d.profile?.user_profile?.pronouns || "";
+    const conns = d.profile?.connected_accounts || [];
+    const connLabel = { steam:"Steam", github:"GitHub", twitter:"X", youtube:"YouTube", twitch:"Twitch",
+      spotify:"Spotify", reddit:"Reddit", xbox:"Xbox", playstation:"PSN", epicgames:"Epic", leagueoflegends:"LoL" };
+
+    return `<div class="hero fade">
+      ${banner ? `<div class="bn" style="background-image:url('${esc(banner)}')"></div>` : ""}
+      <div class="cnt">
+        <img class="av" src="${esc(avatarUrl(u))}" alt="">
+        <div style="min-width:0">
+          <h2>${esc(u.global_name || u.username)}</h2>
+          <div class="handle">@${esc(u.username)} <b>·</b> ${esc(u.id)}</div>
+          <div class="chips">
+            ${created ? `<span class="chip c2">conta: ${created.toLocaleDateString("pt-BR")}</span>` : ""}
+            ${badges.map(b => `<span class="chip">${esc(b)}</span>`).join("")}
+            ${pron ? `<span class="chip c4">${esc(pron)}</span>` : ""}
+            ${d.mutual.length ? `<span class="chip c3">${d.mutual.length} amigos mútuos</span>` : ""}
+            ${d.guilds.length ? `<span class="chip c3">${d.guilds.length} servidores</span>` : ""}
+            ${conns.map(c => `<span class="chip c2">${esc(connLabel[c.type] || c.type)}: ${esc(c.name)}</span>`).join("")}
           </div>
+          ${bio ? `<p class="bio">${esc(bio)}</p>` : ""}
         </div>
-      </div>`;
+      </div>
+    </div>`;
   }
 
   function friendsHtml(){
@@ -409,192 +613,406 @@ ThreadingHTTPServer(("127.0.0.1", PORT), H).serve_forever()
     const body = list.length ? list.map(r => {
       const u = r.user || {};
       const hit = u.id === S.target;
-      const color = r.type===1?"var(--ok)":r.type===2?"var(--bad)":r.type===3?"var(--warn)":"var(--acc2)";
-      return `<div class="item ${hit?"hit":""}">
-        <img src="${esc(avatarUrl(u))}" alt="">
-        <div class="meta"><b>${esc(u.global_name||u.username||"?")}</b>
-          <small>@${esc(u.username||"?")} · ${esc(u.id||"?")}</small></div>
-        <div class="right"><span class="dot" style="background:${color}"></span>${esc(relLabel[r.type]||r.type)}</div>
+      const color = r.type === 1 ? "var(--ok)" : r.type === 2 ? "var(--bad)" : r.type === 3 ? "var(--warn)" : "var(--acc2)";
+      return `<div class="item ${hit ? "hit" : ""}">
+        <img class="av2" src="${esc(avatarUrl(u))}" alt="">
+        <div class="meta"><b>${esc(u.global_name || u.username || "?")}</b>
+          <small>@${esc(u.username || "?")} · ${esc(u.id || "?")}</small></div>
+        <div class="right"><span class="dot" style="background:${color}"></span>${esc(relLabel[r.type] || r.type)}</div>
       </div>`;
     }).join("") : `<div class="empty">nenhum registro nesse filtro</div>`;
 
-    return `<section class="card">
+    return `<section class="card fade">
       <h3>Amigos / relações <em>${all.length}</em></h3>
       <div class="filters">
         ${[["all","todos"],["1","amigos"],["3","recebidos"],["4","enviados"],["2","bloqueados"]]
-          .map(([v,l])=>`<div class="fchip ${S.filter===v?"on":""}" data-filter="${v}">${l}</div>`).join("")}
+          .map(([v,l]) => `<div class="fchip ${S.filter === v ? "on" : ""}" data-filter="${v}">${l}</div>`).join("")}
       </div>
       <div class="list">${body}</div>
     </section>`;
   }
 
+  function mutualsHtml(){
+    const list = S.data?.mutual || [];
+    const body = list.length
+      ? `<div class="mutual-grid">${list.map(u => `
+          <a class="mcard" href="https://discord.com/users/${esc(u.id)}" target="_blank" rel="noopener">
+            <img src="${esc(avatarUrl(u))}" alt="">
+            <div style="min-width:0"><b>${esc(u.global_name || u.username)}</b><small>${esc(u.id)}</small></div>
+          </a>`).join("")}</div>`
+      : `<div class="empty">nenhum amigo mútuo retornado — depende do perfil público/servidores em comum</div>`;
+    return `<section class="card fade">
+      <h3>Amigos mútuos <em>${list.length}</em>
+        <span class="sp"><button class="sm ghost" id="copyMutual">copiar IDs</button></span></h3>
+      ${body}
+    </section>`;
+  }
+
   function callsHtml(){
     const calls = S.data?.calls || [];
-    const body = calls.length ? calls.slice(0,300).map(c => {
+    const body = calls.length ? calls.slice(0, 400).map(c => {
       const other = c.recipients.find(r => r.id !== c.author?.id) || c.recipients[0];
-      const label = c.channelType===3 ? c.channelName : (other?.username || "DM");
+      const label = c.channelType === 3 ? c.channelName + " (grupo)" : (other?.username || "DM");
       const who = c.involved.filter(id => id !== c.author?.id);
-      return `<div class="item ${c.withTarget?"hit":""}">
-        <img src="${esc(avatarUrl(other||c.author))}" alt="">
-        <div class="meta"><b>${esc(label)} ${c.channelType===3?"(grupo)":""}</b>
-          <small>${esc(fmtDate(c.timestamp))} · dur. ${esc(fmtDur(c.durationSec))} ${c.missed?"· não atendida":""}</small>
-          <small>participantes: ${esc(who.join(", "))}</small></div>
-        <div class="right">${c.withTarget?"alvo ✓":esc(c.channelId)}</div>
+      return `<div class="item ${c.withTarget ? "hit" : ""}">
+        <img class="av2" src="${esc(avatarUrl(other || c.author))}" alt="">
+        <div class="meta"><b>${esc(label)}</b>
+          <small>${esc(fmtDate(c.timestamp))} · ${esc(fmtDur(c.durationSec))}${c.missed ? " · não atendida" : ""}</small>
+          <small>${esc(who.join(", "))}</small></div>
+        <div class="right">${c.withTarget ? "alvo ✓" : "—"}</div>
       </div>`;
-    }).join("") : `<div class="empty">nenhuma call encontrada</div>`;
-    return `<section class="card"><h3>Histórico de calls <em>${calls.length}</em></h3>
-      <div class="list">${body}</div></section>`;
+    }).join("") : `<div class="empty">nenhuma call encontrada.<br>
+      Aumente <code>páginas por DM</code> ou <code>DMs a varrer</code>.</div>`;
+
+    const skipped = (S.data?.skipped || []).length
+      ? `<div class="empty">${S.data.skipped.length} conversa(s) sem permissão de histórico</div>` : "";
+
+    return `<section class="card fade">
+      <h3>Calls globais (canais privados) <em>${calls.length}</em></h3>
+      <div class="list">${body}${skipped}</div>
+    </section>`;
+  }
+
+  function timelineHtml(){
+    const t = S.data?.timeline || {};
+    const keys = Object.keys(t).sort();
+    if(!keys.length) return "";
+    const max = Math.max(...keys.map(k => t[k]));
+    const bars = keys.map(k => `<i title="${esc(k)} · ${t[k]} msg" style="height:${Math.max(3, (t[k]/max)*100)}%"></i>`).join("");
+    const top = (S.data?.topChannels || []).map(([k,v]) =>
+      `<div class="item"><div class="meta"><b>${esc(k)}</b><small>${v} mensagem(ns)</small></div></div>`).join("");
+    return `<section class="card fade">
+      <h3>Atividade por mês <em>${keys.length}</em></h3>
+      <div class="tl">${bars}</div>
+      <div class="legend"><span>${esc(keys[0])}</span><span>${esc(keys[keys.length-1])}</span></div>
+      ${top ? `<h3>Top canais <em>${(S.data.topChannels||[]).length}</em></h3><div class="list" style="max-height:240px">${top}</div>` : ""}
+    </section>`;
   }
 
   function msgRow(m){
-    const txt = m.content ? esc(m.content.length>700 ? m.content.slice(0,700)+"…" : m.content) : "<i style='color:#6f7a91'>[sem texto]</i>";
-    const extras = [m.attachments ? m.attachments+" anexo(s)" : "", m.embeds ? m.embeds+" embed(s)" : ""]
+    const filt = S.msgFilter.toLowerCase();
+    if(filt && !(m.content || "").toLowerCase().includes(filt) &&
+       !(m.channelName || "").toLowerCase().includes(filt) &&
+       !(m.guildName || "").toLowerCase().includes(filt)) return "";
+    const txt = m.content
+      ? esc(m.content.length > 900 ? m.content.slice(0, 900) + "…" : m.content)
+      : `<i style="color:#697089">[sem texto]</i>`;
+    const extras = [m.attachments ? m.attachments + " anexo(s)" : "", m.embeds ? m.embeds + " embed(s)" : ""]
       .filter(Boolean).join(" · ");
     return `<div class="msg">
       <div class="mhead"><b>${esc(m.author?.global_name || m.author?.username || "?")}</b>
-        <span>#${esc(m.channelName)}</span><span>${esc(fmtDate(m.timestamp))}</span>
-        ${extras?`<span>${esc(extras)}</span>`:""}
-        <span><a href="${esc(m.link)}" target="_blank" rel="noopener" style="color:#22d3ee">abrir</a></span></div>
+        <span>${esc(m.guildName || "")} › #${esc(m.channelName)}</span>
+        <span>${esc(fmtDate(m.timestamp))}</span>
+        ${extras ? `<span>${esc(extras)}</span>` : ""}
+        <a href="${esc(m.link)}" target="_blank" rel="noopener">abrir</a></div>
       <p class="mbody">${txt}</p>
     </div>`;
   }
 
   function messagesHtml(){
-    const gs = S.data?.guilds || [];
-    if(!gs.length) return `<section class="card"><div class="empty">sem servidores para varrer</div></section>`;
-    return gs.map(g => `
-      <section class="card guild">
+    const d = S.data; if(!d) return "";
+    const guilds = d.guilds || [];
+    const totalMsgs = (d.guildMsgs.length + d.dmMsgs.length);
+
+    const toolbar = `<div class="toolbar">
+      <input id="serverInput" placeholder="link do servidor / convite / ID (ex.: discord.gg/abc)">
+      <button class="sm" id="scanServer">varrer servidor</button>
+      <input id="msgFilter" placeholder="filtrar texto…" value="${esc(S.msgFilter)}" style="flex:0 1 200px">
+      <button class="ghost sm" id="moreAll">+1 página de cada</button>
+    </div>`;
+
+    const guildBlocks = guilds.map(g => {
+      const shown = g.messages.map(msgRow).join("");
+      return `<section class="card fade guild">
         <div class="ghead">
-          <img src="${esc(guildIcon(g))}" alt="">
-          <div class="gname">${esc(g.name)}<small>${esc(g.id)}</small></div>
+          <img class="gi" src="${esc(guildIcon(g))}" alt="">
+          <div class="gname">${esc(g.name)}<small>${esc(g.id)}${g.channelId ? " · canal " + esc(g.channelId) : ""}</small></div>
           <div class="gstat">${g.messages.length}/${g.total ?? "?"}</div>
-          <button class="ghost sm" data-more="${esc(g.id)}" ${g.busy || (g.total && g.messages.length>=g.total) ? "disabled":""}>
-            ${g.busy ? "…" : "+25"}</button>
+          <button class="ghost tiny" data-more="${esc(g.id)}"
+            ${g.busy || (g.total != null && g.messages.length >= g.total) ? "disabled" : ""}>${g.busy ? "…" : "+25"}</button>
         </div>
-        ${g.indexing ? `<div class="empty">Discord está indexando o histórico — tente de novo em instantes</div>`:""}
-        ${g.error ? `<div class="empty">${esc(g.error)}</div>`:""}
-        <div class="list">${g.messages.length ? g.messages.map(msgRow).join("") : `<div class="empty">nenhuma mensagem carregada</div>`}</div>
-      </section>`).join("");
+        ${g.joined_at ? `<div class="legend" style="padding-top:9px">entrou em ${esc(fmtDay(g.joined_at))}${g.nick ? " · nick: " + esc(g.nick) : ""}${g.member?.roles?.length ? " · " + g.member.roles.length + " cargos" : ""}</div>` : ""}
+        ${g.indexing ? `<div class="empty">Discord indexando o histórico — tente novamente em instantes</div>` : ""}
+        ${g.error ? `<div class="empty">${esc(g.error)}</div>` : ""}
+        <div class="list">${shown || `<div class="empty">nenhuma mensagem carregada</div>`}</div>
+      </section>`;
+    }).join("");
+
+    const dmBlock = d.dmMsgs.length ? `<section class="card fade">
+      <h3>Mensagens em DMs / grupos <em>${d.dmMsgs.length}</em></h3>
+      <div class="list">${d.dmMsgs.slice(0, 300).map(msgRow).join("")}</div>
+    </section>` : "";
+
+    return `<section class="card fade">
+        <h3>Busca global de mensagens <em>${totalMsgs}</em></h3>
+        ${toolbar}
+      </section>
+      ${timelineHtml()}
+      ${dmBlock}
+      ${guildBlocks || `<section class="card"><div class="empty">nenhum servidor — cole um link acima e clique em <code>varrer servidor</code></div></section>`}`;
+  }
+
+  function guildsHtml(){
+    const gs = S.data?.guilds || [];
+    if(!gs.length) return `<section class="card fade"><div class="empty">nenhum servidor em comum</div></section>`;
+    return `<section class="card fade">
+      <h3>Servidores compartilhados <em>${gs.length}</em></h3>
+      <div class="list">${gs.map(g => `
+        <div class="item">
+          <img class="av2" style="border-radius:11px" src="${esc(guildIcon(g))}" alt="">
+          <div class="meta"><b>${esc(g.name)}</b>
+            <small>${esc(g.id)}${g.nick ? " · nick: " + esc(g.nick) : ""}${g.joined_at ? " · desde " + esc(fmtDay(g.joined_at)) : ""}</small>
+            <small>${g.messages.length}/${g.total ?? "?"} mensagens do alvo</small></div>
+          <div class="right">
+            <button class="ghost tiny" data-more="${esc(g.id)}">varrer +25</button>
+          </div>
+        </div>`).join("")}</div>
+    </section>`;
   }
 
   function renderPane(){
     const pane = $("pane");
-    pane.innerHTML = S.tab === "friends" ? friendsHtml()
-                   : S.tab === "calls"   ? callsHtml()
-                   :                       messagesHtml();
+    const d = S.data;
+    if(!d || !d.user){ pane.innerHTML = ""; return; }
+
+    const map = { friends: friendsHtml, mutuals: mutualsHtml, calls: callsHtml,
+                  messages: messagesHtml, guilds: guildsHtml };
+    pane.innerHTML = (map[S.tab] || friendsHtml)();
+
     pane.querySelectorAll("[data-filter]").forEach(el => el.onclick = () => {
       S.filter = el.dataset.filter; renderPane();
     });
     pane.querySelectorAll("[data-more]").forEach(btn => btn.onclick = () => {
-      const g = S.data.guilds.find(x => x.id === btn.dataset.more);
-      if(g) loadGuildMessages(g, 1);
+      const g = d.guilds.find(x => x.id === btn.dataset.more);
+      if(g) loadGuildPages(g, 1);
     });
+    const si = $("serverInput");
+    if(si) si.addEventListener("keydown", e => { if(e.key === "Enter") scanServerFromInput(); });
+    const sb = $("scanServer");
+    if(sb) sb.onclick = scanServerFromInput;
+    const mf = $("msgFilter");
+    if(mf) mf.oninput = (e) => {
+      S.msgFilter = e.target.value;
+      const pos = e.target.selectionStart;
+      renderPane();
+      const n = $("msgFilter"); if(n){ n.focus(); n.setSelectionRange(pos, pos); }
+    };
+    const ma = $("moreAll");
+    if(ma) ma.onclick = () => runQueue(d.guilds.filter(g => !(g.total != null && g.messages.length >= g.total)), 1);
+    const cm = $("copyMutual");
+    if(cm) cm.onclick = () => {
+      const txt = (d.mutual || []).map(u => `${u.id}\t${u.username}`).join("\n");
+      navigator.clipboard?.writeText(txt).then(() => toast("IDs mútuos copiados"), () => toast("não foi possível copiar", "err"));
+    };
   }
 
   function updateStats(){
     const d = S.data; if(!d) return;
-    const count = (arr,f) => (arr||[]).filter(f).length;
+    const msgs = d.guildMsgs.length + d.dmMsgs.length;
     $("stats").style.display = "grid";
-    $("sFriends").textContent = count(d.friends, r => r.type===1);
-    $("sMutual").textContent  = d.mutual ? d.mutual.length : 0;
-    $("sDms").textContent     = count(d.channels, c => c.type===1 || c.type===3);
+    $("sFriends").textContent = d.friends.filter(r => r.type === 1).length;
+    $("sMutual").textContent  = d.mutual.length;
+    $("sDms").textContent     = (d.channels || []).filter(c => c.type === 1 || c.type === 3).length;
     $("sCalls").textContent   = d.calls.length;
     $("sGuilds").textContent  = d.guilds.length;
-    $("sMsgs").textContent    = d.guilds.reduce((a,g)=>a+g.messages.length,0);
+    $("sMsgs").textContent    = msgs;
+
+    $("nFriends").textContent = d.friends.length;
+    $("nMutual").textContent  = d.mutual.length;
+    $("nCalls").textContent   = d.calls.length;
+    $("nMsgs").textContent    = msgs;
+    $("nGuilds").textContent  = d.guilds.length;
   }
 
-  /* ---------- fluxo ---------- */
-  async function investigate(){
-    const id = $("target").value.trim();
-    S.token  = $("token").value.trim();
-    S.base   = $("base").value.trim() || "https://discord.com/api/v9";
-    const maxDm    = Math.max(1, Math.min(200, parseInt($("maxdm").value,10) || 40));
-    const maxGuild = Math.max(1, Math.min(50,  parseInt($("maxguild").value,10) || 12));
-    const onlyTarget = $("onlyTarget").checked;
+  /* ---------------- fluxo ---------------- */
+  async function runQueue(guilds, pages){
+    for(const g of guilds){
+      setStatus(`buscando em ${g.name}…`);
+      await loadGuildPages(g, pages);
+    }
+    rebuildDerived(); renderPane(); updateStats();
+  }
 
-    if(!/^\d{15,21}$/.test(id)){ setStatus("ID inválido — informe o snowflake numérico", true); return; }
-    if(!S.token){ setStatus("informe o token da conta consultora", true); return; }
+  async function scanServerFromInput(){
+    const val = $("serverInput")?.value || "";
+    try{
+      setStatus("resolvendo servidor…");
+      const r = await resolveServerInput(val);
+      const d = S.data;
+      let g = d.guilds.find(x => x.id === r.guildId);
+      if(!g){
+        g = { id: r.guildId, name: r.name || r.guildId, icon: null, messages: [],
+              offset: 0, total: null, busy: false, error: null, metaLoaded: false };
+        d.guilds.push(g);
+      }
+      if(r.channelId) g.channelId = r.channelId;
+      await loadGuildPages(g, 1);
+      S.tab = "messages";
+      document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab === "messages"));
+      renderPane(); updateStats();
+      toast(`servidor ${g.name}: ${g.messages.length} mensagem(ns) do alvo`);
+      setStatus("pronto");
+    }catch(e){
+      toast(e.message, "err");
+      setStatus(e.message, "err");
+    }
+  }
+
+  async function investigate(){
+    if(S.loading) return;
+    const id = $("target").value.trim();
+    S.token = $("token").value.trim();
+    S.base  = $("base").value.trim() || "https://discord.com/api/v9";
+    const maxChannels = Math.max(1, Math.min(300, parseInt($("maxdm").value, 10) || 60));
+    const pagesPerDm  = Math.max(1, Math.min(20,  parseInt($("dmpages").value, 10) || 3));
+    const maxGuild    = Math.max(1, Math.min(100, parseInt($("maxguild").value, 10) || 20));
+    const gPages      = Math.max(1, Math.min(20,  parseInt($("gpaginas").value, 10) || 1));
+    const allGuilds   = $("allGuilds").checked;
+    const targetId    = id;
+
+    if(!/^\d{15,21}$/.test(id)){ setStatus("ID inválido", "err"); toast("ID inválido — use o snowflake numérico", "err"); return; }
+    if(!S.token){ setStatus("token ausente", "err"); toast("informe o token da consultora", "err"); return; }
 
     if($("remember").checked) localStorage.setItem("dc_token", S.token);
     else localStorage.removeItem("dc_token");
 
-    S.target = id; S.filter = "all"; S.tab = "friends";
-    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab==="friends"));
-    $("go").disabled = true; $("export").disabled = true;
-    $("profileSlot").innerHTML = ""; $("pane").innerHTML = ""; $("stats").style.display = "none";
+    S.loading = true; S.target = id; S.filter = "all"; S.msgFilter = "";
+    S.tab = "friends";
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab === "friends"));
+    $("go").disabled = true; $("exportJson").disabled = true; $("exportCsv").disabled = true;
+    $("hero").innerHTML = ""; $("pane").innerHTML = ""; $("stats").style.display = "none";
+    $("tabs").style.display = "none";
+    progress(3);
 
-    const d = { target:id, generatedAt:new Date().toISOString(), user:null, profile:null,
-                mutual:[], friends:[], calls:[], skipped:[], channels:[], guilds:[], errors:[] };
-
-    setStatus("perfil…");
-    try{ d.user = await api(`/users/${id}`, { token:"" }); }
-    catch(e){ d.errors.push("perfil: "+e.message); }
-
-    try{ await api("/users/@me"); }catch(e){ d.errors.push("token: "+e.message); }
+    const d = {
+      target: id, generatedAt: new Date().toISOString(),
+      user: null, profile: null, mutual: [], friends: [], channels: [],
+      calls: [], dmMsgs: [], skipped: [], guilds: [], errors: [],
+    };
+    S.data = d;
 
     try{
+      setStatus("perfil…");
+      try { d.user = await api(`/users/${id}`, { token: "" }); }
+      catch { d.user = await api(`/users/${id}`); }
+    }catch(e){ d.errors.push("perfil: " + e.message); toast("perfil: " + e.message, "err"); }
+    progress(8);
+
+    try{
+      setStatus("perfil estendido / mútuos…");
       const p = await api(`/users/${id}/profile?with_mutual_guilds=true&with_mutual_friends=true`);
       d.profile = p;
-      d.mutual = (p.mutual_friends||[]).map(u=>({ id:u.id, username:u.username, avatar:u.avatar }));
-    }catch(e){ d.errors.push("profile: "+e.message); }
+      d.mutual = (p.mutual_friends || []).map(u => ({ id:u.id, username:u.username, global_name:u.global_name||null, avatar:u.avatar }));
+      d.mutualGuilds = p.mutual_guilds || [];
+    }catch(e){ d.errors.push("profile: " + e.message); }
+    progress(14);
 
-    try{ d.friends = await api("/users/@me/relationships") || []; }
-    catch(e){ d.errors.push("amigos: "+e.message); }
+    try{ d.friends = (await api("/users/@me/relationships")) || []; }
+    catch(e){ d.errors.push("amigos: " + e.message); }
 
-    try{ d.channels = await api("/users/@me/channels") || []; }
-    catch(e){ d.errors.push("canais: "+e.message); }
+    try{ d.channels = (await api("/users/@me/channels")) || []; }
+    catch(e){ d.errors.push("canais: " + e.message); }
+    progress(18);
 
+    // canais privados: calls + mensagens do alvo
     if(d.channels.length){
-      const r = await scanCalls(d.channels, id, onlyTarget, maxDm);
-      d.calls = r.calls; d.skipped = r.skipped;
+      const r = await scanPrivate(id, { maxChannels, pagesPerDm });
+      d.calls = r.calls; d.dmMsgs = r.msgs; d.skipped = r.skipped;
     }
+    progress(60);
 
-    setStatus("servidores…");
+    // servidores
+    setStatus("servidores compartilhados…");
+    let gs = [];
     try{
-      const gs = (await sharedGuilds(id)).slice(0, maxGuild);
-      d.guilds = gs.map(g => ({ id:g.id, name:g.name, icon:g.icon, messages:[], total:null,
-                                busy:false, indexing:false, error:null }));
-      d.guildsCount = d.guilds.length;
-    }catch(e){ d.errors.push("servidores: "+e.message); }
+      if(allGuilds){
+        const mine = await api("/users/@me/guilds");
+        gs = (mine || []).map(g => ({ id:g.id, name:g.name, icon:g.icon }));
+      } else if(d.mutualGuilds && d.mutualGuilds.length){
+        gs = d.mutualGuilds.map(g => ({ id:g.id, name:g.id, icon:null, nick:g.nick }));
+      } else {
+        const mine = await api("/users/@me/guilds");
+        gs = (mine || []).map(g => ({ id:g.id, name:g.name, icon:g.icon }));
+      }
+    }catch(e){ d.errors.push("servidores: " + e.message); }
 
-    S.data = d;
-    $("profileSlot").innerHTML = profileHtml();
+    d.guilds = gs.slice(0, maxGuild).map(g => ({
+      id: g.id, name: g.name || g.id, icon: g.icon || null, nick: g.nick || null,
+      messages: [], offset: 0, total: null, busy: false, error: null, metaLoaded: false,
+    }));
+
+    $("hero").innerHTML = heroHtml();
     $("tabs").style.display = "flex";
+    updateStats();
+    renderPane();
+    progress(66);
 
-    // primeira página de cada servidor (sequencial p/ respeitar rate limit)
-    for(const g of d.guilds){
-      setStatus(`mensagens · ${g.name}`);
-      await loadGuildMessages(g, 1);
+    const queue = d.guilds.slice();
+    for(let i = 0; i < queue.length; i++){
+      setStatus(`mensagens ${i+1}/${queue.length} · ${queue[i].name}`);
+      progress(66 + (i / Math.max(1, queue.length)) * 32);
+      await loadGuildPages(queue[i], gPages);
+      await sleep(260);
     }
 
-    renderPane(); updateStats();
-    setStatus(`ok — ${d.calls.length} call(s) · ${d.guilds.reduce((a,g)=>a+g.messages.length,0)} msg(s)`);
-    $("go").disabled = false; $("export").disabled = false;
+    d.guildMsgs = d.guilds.flatMap(g => g.messages);
+    rebuildDerived();
+    updateStats();
+    renderPane();
+    progress(100);
+    setTimeout(() => progress(-1), 1200);
+
+    setStatus(`ok · ${d.calls.length} calls · ${d.guildMsgs.length + d.dmMsgs.length} msgs`, "");
+    $("go").disabled = false; $("exportJson").disabled = false; $("exportCsv").disabled = false;
+    S.loading = false;
+    toast(`coleta concluída: ${d.guildMsgs.length + d.dmMsgs.length} mensagens, ${d.calls.length} calls`);
   }
 
+  /* ---------------- exports ---------------- */
   function exportJson(){
-    if(!S.data) return;
-    const blob = new Blob([JSON.stringify(S.data,null,2)], { type:"application/json" });
+    const d = S.data; if(!d) return;
+    const blob = new Blob([JSON.stringify(d, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `discord_${S.target}_${Date.now()}.json`;
     a.click(); URL.revokeObjectURL(a.href);
   }
+  function exportCsv(){
+    const d = S.data; if(!d) return;
+    const rows = [["tipo","timestamp","servidor","canal","autor_id","autor","conteudo","link"]];
+    for(const m of [...d.guildMsgs, ...d.dmMsgs]){
+      rows.push(["msg", m.timestamp, m.guildName || "", m.channelName || "",
+        m.author?.id || "", m.author?.username || "", (m.content || "").replace(/"/g, '""'), m.link || ""]);
+    }
+    for(const c of d.calls){
+      rows.push(["call", c.timestamp, c.channelName, c.channelName, c.author?.id || "",
+        c.author?.username || "", `participantes: ${c.involved.join(" ")} dur:${c.durationSec ?? ""}s`, ""]);
+    }
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `discord_${S.target}_${Date.now()}.csv`;
+    a.click(); URL.revokeObjectURL(a.href);
+  }
 
-  /* ---------- boot ---------- */
+  /* ---------------- boot ---------------- */
   const saved = localStorage.getItem("dc_token");
   if(saved) $("token").value = saved;
 
   document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
     S.tab = t.dataset.tab;
-    document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x===t));
+    document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));
     renderPane();
   });
   $("go").onclick = () => investigate().catch(e => {
-    setStatus("erro: "+e.message, true); $("go").disabled = false;
+    setStatus(e.message, "err"); toast(e.message, "err");
+    $("go").disabled = false; S.loading = false;
   });
-  $("export").onclick = exportJson;
-  $("target").addEventListener("keydown", e => { if(e.key==="Enter") $("go").click(); });
+  $("exportJson").onclick = exportJson;
+  $("exportCsv").onclick = exportCsv;
+  $("target").addEventListener("keydown", e => { if(e.key === "Enter") $("go").click(); });
+  led("");
 })();
 </script>
 </body>
